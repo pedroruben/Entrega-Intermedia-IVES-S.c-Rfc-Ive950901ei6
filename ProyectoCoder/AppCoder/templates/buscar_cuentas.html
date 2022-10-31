@@ -1,0 +1,41 @@
+<title>Busqueda de cuentas por alumnos</title>
+    
+{% extends 'base_formularios.html' %}
+
+    {% load static %}
+    
+    {% block contenidoFormulario %}
+      
+    <form action="{% url 'Buscar' %}" method="POST">{% csrf_token %}
+        <label>Seleccione el alumno, para buscar sus estado de cuenta</label>
+        <select name="id_del_alumno" class="form-control">
+            <option>Seleccione un alumno</option>
+            {%for lista in lista_alumnos %}
+                <option value="{{ lista.id }}">{{ lista.nombre}} {{lista.apellido_paterno}} {{lista.apellido_materno}}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
+        <input type="submit" value="Enviar" class="btn btn-primary"/>
+    </form>
+
+    {% if cuentas %}
+        <table class="table table-bordered">
+            <thead class="bg-primary">
+                <th>Alumno</th>
+                <th>Concepto</th>
+                <th>Estado</th>
+            </thead>
+            <tbody>
+                {%for cuenta in cuentas %}
+                    <tr>
+                        <td>{{cuenta.alumno_id}}</td>
+                        <td>{{cuenta.concepto_id}}</td>
+                        <td>{{cuenta.estado}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>  
+    {% endif %}  
+
+{% endblock contenidoFormulario %}

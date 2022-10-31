@@ -1,0 +1,18 @@
+<title>Agregar conceptos de pago</title>
+    
+{% extends 'base_formularios.html' %}
+
+    {% load static %}
+    
+    {% block contenidoFormulario %}
+      
+    <form action="{% url 'AgregarConceptos' %}" method="POST">{% csrf_token %}
+        {% load crispy_forms_tags %}
+
+        {{ formulario_concepto|crispy:"bootstrap4" }}
+    
+        <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
+        <input type="submit" value="Enviar" class="btn btn-primary"/>
+    </form>
+
+{% endblock contenidoFormulario %}

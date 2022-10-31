@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <title>Proyecto para CODER house</title>
+    <style type="text/css">
+        header {
+            padding: 5px;
+            text-align: center;
+			background-color: #0C4B33;
+			font-weight: bold;
+        }
+        body {
+            text-align: center;
+            background-color: gray;
+        }
+    
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-expand navbar-dark flex-column flex-md-row bd-navbar">
+      
+        <div class="navbar-nav-scroll">
+          <ul class="navbar-nav bd-navbar-nav flex-row">
+            <li class="nav-item">
+              <a class="nav-link active" href="/">Inicio |</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/agregar">Agregar alumno |</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/agregar_conceptos">Agregar concepto de pago |</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/agregar_cuentas">Agregar cuenta por cobrar |</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/buscar_cuentas">Buscar cuentas por cobrar |</a>
+            </li>
+        </div>
+    </header>
+
+    <br>
+
+    {% block contenidoQueCambia %}
+        
+    {% endblock contenidoQueCambia %}
+    
+</body>
+</html>

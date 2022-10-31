@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+    {% load static %}
+    
+    {% block contenidoQueCambia %}
+
+    <div class="col12 col-md-6 offset-md-3">
+        <div class="card">
+            <div class="cardbody">
+             
+                        
+            
+                        {% block contenidoFormulario %}
+        
+                        {% endblock contenidoFormulario %}
+            </div>
+        </div>
+
+    </div>
+{% endblock contenidoQueCambia %}

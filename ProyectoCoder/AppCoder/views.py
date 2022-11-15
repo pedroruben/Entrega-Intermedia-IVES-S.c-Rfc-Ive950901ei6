@@ -25,12 +25,12 @@ def buscar(request):
 
 def AgregarAlumno (request):
     if request.method == "POST":
-        formulario_alumnos = AlumnoFormulario(request.POST)
+        formulario_alumnos = AlumnoFormulario(request.POST, request.FILES)
         print(formulario_alumnos)
 
         if formulario_alumnos.is_valid():
             informacionAlumno = formulario_alumnos.cleaned_data
-            alumno = Alumno(nombre=informacionAlumno["nombre"], apellido_paterno=informacionAlumno["apellido_paterno"], apellido_materno=informacionAlumno["apellido_materno"], plan=informacionAlumno["plan"])
+            alumno = Alumno(nombre=informacionAlumno["nombre"], apellido_paterno=informacionAlumno["apellido_paterno"], apellido_materno=informacionAlumno["apellido_materno"], plan=informacionAlumno["plan"], fotografia=informacionAlumno["fotografia"])
             alumno.save()
 
             return HttpResponseRedirect('/')

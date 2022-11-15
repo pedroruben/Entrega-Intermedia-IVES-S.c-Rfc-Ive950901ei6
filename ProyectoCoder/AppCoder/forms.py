@@ -7,6 +7,7 @@ class AlumnoFormulario (forms.Form):
     apellido_paterno = forms.CharField(label='Apellido paterno',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el apellido paterno del alumno' , 'class':'form-control'}), max_length=100)
     apellido_materno = forms.CharField(label='Apellido materno',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el apellido materno del alumno' , 'class':'form-control'}), max_length=100)
     plan = forms.CharField(label='Plan de estudios',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el plan de estudios del alumno' , 'class':'form-control'}), max_length=200)
+    fotografia = forms.FileField(label='Fotografia')
 
 class Concepto_pagosFormulario (forms.Form):
     descripcion = forms.CharField(label='Descripcion',widget=forms.TextInput(attrs={'placeholder': 'Ingresa la descripcion del concepto de pago' , 'class':'form-control'}), max_length=300)

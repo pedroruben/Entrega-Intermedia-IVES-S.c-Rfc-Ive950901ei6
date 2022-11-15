@@ -6,6 +6,7 @@ class Alumno (models.Model):
     apellido_paterno = models.CharField(max_length=100)
     apellido_materno = models.CharField(max_length=100)
     plan = models.CharField(max_length=200)
+    fotografia = models.ImageField(upload_to="fotografias", null=True)
 
     def __str__(self):
         return f'{self.nombre} {self.apellido_paterno} {self.apellido_materno}'

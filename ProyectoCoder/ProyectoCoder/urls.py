@@ -17,7 +17,8 @@ from django.contrib import admin
 from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
-from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar
+from django.contrib.auth.views import LogoutView
+from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar, loginView, register
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,7 +27,10 @@ urlpatterns = [
     path('agregar_cuentas/',AgregarCuenta, name="AgregarCuentas"),
     path('buscar_cuentas/', buscar_cuentas, name="BuscarCuentas"),
     path('buscar/', buscar, name="Buscar"),
-    path('', Inicio),
+    path('', Inicio, name="Inicio"),
+    path('login/', loginView, name="Login"),
+    path('registrar/', register, name="Registrar"),
+    path('logout/', LogoutView.as_view(template_name="logout.html"), name="Logout"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

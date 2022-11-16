@@ -1,0 +1,18 @@
+<title>Agregar usuarios</title>
+    
+{% extends 'base_formularios.html' %}
+
+    {% load static %}
+    
+    {% block contenidoFormulario %}
+
+        <form action="{% url 'Registrar' %}" method="POST">{% csrf_token %}
+            {% load crispy_forms_tags %}
+
+            {{ form|crispy:"bootstrap4" }}
+        
+            <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
+            <input type="submit" value="Aceptar" class="btn btn-primary"/>
+        </form>
+
+{% endblock contenidoFormulario %}

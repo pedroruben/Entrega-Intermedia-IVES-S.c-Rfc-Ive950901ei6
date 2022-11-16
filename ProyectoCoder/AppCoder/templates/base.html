@@ -40,6 +40,17 @@
             <li class="nav-item">
                 <a class="nav-link active" href="/buscar_cuentas">Buscar cuentas por cobrar |</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/registrar">Registrar usuarios |</a>
+            </li>
+
+            {% if user.is_authenticated %}
+                <p>Bienvenido {{user.username}}</p>
+                <a class="btn btn-primary" href="{% url 'Logout' %}">LOGOUT</a>
+            {% else %}
+                <a class="btn btn-primary" href="{% url 'Login' %}">LOGIN</a>
+            {% endif %}
+
         </div>
     </header>
 

@@ -1,0 +1,42 @@
+header{
+    display: flex;
+    background-color:rgb(19,81,147);
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+a{
+    text-decoration: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 3px;
+}
+
+nav{
+    margin: 0px auto;
+}
+
+nav a{
+    font-weight: 600;
+    padding-right: 10px;
+    margin: 0px 10px;
+    width: max-content;
+
+}
+
+nav a:hover{
+    color: #DAAA00;
+    text-decoration: none;
+    background-color: rgb(17, 72, 131);
+    transition: 0.25s;
+}
+
+@media (max-width: 700px){
+    header{
+        flex-direction: column;
+    }
+    nav{
+        padding: 10px 0px;
+    }
+}

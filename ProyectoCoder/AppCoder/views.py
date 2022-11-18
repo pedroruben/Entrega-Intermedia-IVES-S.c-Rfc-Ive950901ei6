@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView, CreateView
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -12,6 +13,9 @@ from django.contrib.auth import login, logout, authenticate
 
 from .forms import AlumnoFormulario, Concepto_pagosFormulario, CuentasXcobrarFormulario
 from .models import Alumno, Concepto_pagos, CuentasXcobrar
+
+import barcode
+from barcode.writer import ImageWriter
 
 # Create your views here.
 
@@ -36,13 +40,15 @@ def buscar(request):
 def AgregarAlumno(request):
     if request.method == "POST":
         formulario_alumnos = AlumnoFormulario(request.POST, request.FILES)
+        form = UserCreationForm(request.POST)
         print(formulario_alumnos)
 
         if formulario_alumnos.is_valid():
             informacionAlumno = formulario_alumnos.cleaned_data
             alumno = Alumno(nombre=informacionAlumno["nombre"], apellido_paterno=informacionAlumno["apellido_paterno"],
-                            apellido_materno=informacionAlumno["apellido_materno"], plan=informacionAlumno["plan"], fotografia=informacionAlumno["fotografia"])
+                            apellido_materno=informacionAlumno["apellido_materno"], plan_id=informacionAlumno["plan_id"], fotografia=informacionAlumno["fotografia"])
             alumno.save()
+            # usuario = User(username=informacionAlumno["nombre"], first_name=informacionAlumno["nombre"], last_name=informacionAlumno["apellido_materno"]+" "+informacionAlumno["apellido_materno"])
 
             return HttpResponseRedirect('/')
 
@@ -125,3 +131,10 @@ def register(request):
     else:
         form = UserCreationForm()
         return render(request, "registro.html", {"form": form})
+
+def codigo_barras(request):
+    number = '049000042511'
+    barcode_format = barcode.get_barcode_class('upc')
+    my_barcode = barcode_format(number, writer=ImageWriter())
+    my_barcode.save("media/generated_barcode")
+    return render(request, "codigo_barra.html", {"my_barcode": my_barcode})

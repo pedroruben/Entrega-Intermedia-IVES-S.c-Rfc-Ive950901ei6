@@ -18,7 +18,7 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.views import LogoutView
-from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar, loginView, register
+from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar, loginView, register, codigo_barras
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,6 +31,7 @@ urlpatterns = [
     path('login/', loginView, name="Login"),
     path('registrar/', register, name="Registrar"),
     path('logout/', LogoutView.as_view(template_name="logout.html"), name="Logout"),
+    path('barra/', codigo_barras, name="Codigo"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

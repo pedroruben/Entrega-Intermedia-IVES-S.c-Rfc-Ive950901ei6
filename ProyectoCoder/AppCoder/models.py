@@ -1,12 +1,21 @@
 from django.db import models
 
 # Create your models here.
+class Plan (models.Model):
+    DESCRIPCION = models.CharField(max_length=300)
+    acuerdo = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f'{self.DESCRIPCION} {self.acuerdo}'
+
 class Alumno (models.Model):
     nombre = models.CharField(max_length=100)
     apellido_paterno = models.CharField(max_length=100)
     apellido_materno = models.CharField(max_length=100)
-    plan = models.CharField(max_length=200)
+    plan_id = models.ForeignKey(Plan, on_delete=models.CASCADE)
     fotografia = models.ImageField(upload_to="fotografias", null=True)
+    certificado = models.ImageField(upload_to="certificados", null=True)
+    comprobante = models.ImageField(upload_to="comprobantes", null=True)
 
     def __str__(self):
         return f'{self.nombre} {self.apellido_paterno} {self.apellido_materno}'

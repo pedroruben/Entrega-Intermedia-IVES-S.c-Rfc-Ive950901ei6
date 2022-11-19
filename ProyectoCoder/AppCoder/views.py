@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import login, logout, authenticate
+from datetime import date
 
 from .forms import AlumnoFormulario, Concepto_pagosFormulario, CuentasXcobrarFormulario
 from .models import Alumno, Concepto_pagos, CuentasXcobrar
@@ -40,18 +41,23 @@ def buscar(request):
 def AgregarAlumno(request):
     if request.method == "POST":
         formulario_alumnos = AlumnoFormulario(request.POST, request.FILES)
-        form = UserCreationForm(request.POST)
-        print(formulario_alumnos)
 
         if formulario_alumnos.is_valid():
             informacionAlumno = formulario_alumnos.cleaned_data
             alumno = Alumno(nombre=informacionAlumno["nombre"], apellido_paterno=informacionAlumno["apellido_paterno"],
-                            apellido_materno=informacionAlumno["apellido_materno"], plan_id=informacionAlumno["plan_id"], fotografia=informacionAlumno["fotografia"])
+                            apellido_materno=informacionAlumno["apellido_materno"], plan_id=informacionAlumno["plan_id"], fotografia=informacionAlumno["fotografia"], certificado=informacionAlumno["certificado"], comprobante=informacionAlumno["comprobante"])
             alumno.save()
-            # usuario = User(username=informacionAlumno["nombre"], first_name=informacionAlumno["nombre"], last_name=informacionAlumno["apellido_materno"]+" "+informacionAlumno["apellido_materno"])
+            nombre_c = informacionAlumno["nombre"]
+            apellido_paterno_C = informacionAlumno["apellido_paterno"]
+            apellido_materno_c = informacionAlumno["apellido_materno"]
+            #Día actual
+            today = date.today()
+            nombre_usuario = nombre_c[0:2] + apellido_paterno_C[0:2] + apellido_materno_c[0:2] + str(today.year) + str(today.month) + str(today.day)
+            usuario = User(username=nombre_usuario, first_name=informacionAlumno["nombre"], last_name=informacionAlumno["apellido_paterno"]+" "+informacionAlumno["apellido_materno"])
+            usuario.set_password(nombre_usuario) #para colocar la contraseña hasheada en la BD
+            usuario.save()
 
             return HttpResponseRedirect('/')
-
     else:
         formulario_alumnos = AlumnoFormulario()
         return render(request, "agregar_alumno.html", {"formulario_alumnos": formulario_alumnos})

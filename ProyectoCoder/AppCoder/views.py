@@ -46,18 +46,27 @@ def AgregarAlumno(request):
             informacionAlumno = formulario_alumnos.cleaned_data
             alumno = Alumno(nombre=informacionAlumno["nombre"], apellido_paterno=informacionAlumno["apellido_paterno"],
                             apellido_materno=informacionAlumno["apellido_materno"], plan_id=informacionAlumno["plan_id"], fotografia=informacionAlumno["fotografia"], certificado=informacionAlumno["certificado"], comprobante=informacionAlumno["comprobante"])
-            alumno.save()
+            # alumno.save()
             nombre_c = informacionAlumno["nombre"]
             apellido_paterno_C = informacionAlumno["apellido_paterno"]
             apellido_materno_c = informacionAlumno["apellido_materno"]
             #Día actual
             today = date.today()
             nombre_usuario = nombre_c[0:2] + apellido_paterno_C[0:2] + apellido_materno_c[0:2] + str(today.year) + str(today.month) + str(today.day)
-            usuario = User(username=nombre_usuario, first_name=informacionAlumno["nombre"], last_name=informacionAlumno["apellido_paterno"]+" "+informacionAlumno["apellido_materno"])
-            usuario.set_password(nombre_usuario) #para colocar la contraseña hasheada en la BD
-            usuario.save()
+            # usuario = User(username=nombre_usuario, first_name=informacionAlumno["nombre"], last_name=informacionAlumno["apellido_paterno"]+" "+informacionAlumno["apellido_materno"])
+            # usuario.set_password(nombre_usuario) #para colocar la contraseña hasheada en la BD
+            # usuario.save()
 
-            return HttpResponseRedirect('/')
+            fecha = "10-12-2022"
+            total = 1000
+            referencia = "123456789"
+            concepto_pagos = Concepto_pagos.objects.all()
+            datos_referencia = {"nombre_usuario":nombre_usuario,"nombre":nombre_c, "apellido_paterno":apellido_paterno_C,
+                            "apellido_materno":apellido_materno_c, "concepto_pagos":concepto_pagos, "referencia": referencia,
+                            "total":total, "fecha":fecha}
+
+            # return HttpResponseRedirect('/')
+            return render(request, "confirmacion.html", context={"datos_referencia": datos_referencia})
     else:
         formulario_alumnos = AlumnoFormulario()
         return render(request, "agregar_alumno.html", {"formulario_alumnos": formulario_alumnos})

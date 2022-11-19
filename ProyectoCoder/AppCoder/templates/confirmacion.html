@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+    <title>Confirmacion</title>
+	 <style type="text/css">
+        td, th {
+            padding: 5px;
+            text-align: center;
+			
+        }
+        div {
+            text-align: center;
+			aling-items: center;
+        }
+		@media print {
+			header, footer, nav, aside, ul, input, a, #page-footer {
+			  display: none;
+			}
+		}
+		#l {
+			text-align: left;
+			aling-items: left;
+		}
+		#r {
+			text-align: right;
+			aling-items: right;
+		}
+		#b{
+			border: 1px solid black;
+			border-collapse: collapse;
+		}
+		#pagadosB {
+			background-color:rgb(19,81,147); /*AZUL*/
+			COLOR: white;
+		}
+		
+		#pagadosB:hover {
+			background-color: #DAAA00; /*AMARILLO*/
+			COLOR: black;
+		}
+    </style>
+</head>
+<body>
+    <p>Se ha registrado exitosamente como {{ datos_referencia.nombre_usuario }} al igual que con la contraseña {{ datos_referencia.nombre_usuario }}<br>
+        Recuerde anotarla sera necesaria para seguir con su proceso de inscripcion</p>
+	<div id="referencia">
+		<table align="center">
+			<tbody>
+				<tr>
+					<td id="l"><img src="../../media/img/Logo-ives.png"></td>
+					<td id="r"><img src="../../media/img/Logo-santander.png"></td>
+				</tr>
+				<tr>
+					<td id="l">UNIVERSIDAD IVES<br>BOLETA DE PAGO DE SERVICIOS</td>
+					<td id="r">No. Convenio: 6071</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<table id="b" style="width:100%" border="1" align="center">
+							<tbody>
+								<tr>
+									<td id="l" colspan="2">Alumno:<br><br><b>{{ datos_referencia.apellido_paterno}} {{datos_referencia.apellido_materno}} {{datos_referencia.nombre}}</b></td>
+								</tr>
+								<tr>
+									<td id="l" colspan="2">Concepto:<br><br><b><?php echo "$concepto"; ?></b></td>
+								</tr>
+								<tr>
+									<td id="l" colspan="2">Referencia:<br><br><b><?php echo "$referencia";?></b></td>
+								</tr>
+								<tr>
+									<td id="l">Vence el:<br><br><b><?php echo "$dia",' de ',"$mes",' del ',"$año";?></b></td>
+									<td id="r">Cantidad:<br><br><b>$<?php echo number_format(floatval($total), 2, '.', ','); ?></b></td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<img src="../../media/generated_barcode.png">
+					</td>
+				</tr>
+				<tr>
+					<td id="l" colspan="2">
+						NOTA: La referencia es válida únicamente hasta la fecha de su vigencia. <br>
+						En caso de no haber realizado el pago oportunamente, favor de solicitar una nueva referencia<br>
+						en el área de caja de la institución. <br>
+						Si tiene dudas o problemas favor de comunicarse a la dirección de correo electrónico:<br> 
+						caja@ives.edu.mx o al número de teléfono: 2288123456 Ext.123
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+   <footer>
+		<br>
+		<div>
+			<button type="button" onclick="javascript:window.print();">Imprimir</button>
+			<br><br>
+			<button id="pagadosB" type="button" onclick="history.back();">Volver</button>
+		</div>		
+   </footer>
+</body>
+</html>

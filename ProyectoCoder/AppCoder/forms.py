@@ -1,12 +1,15 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Alumno, Concepto_pagos
+from .models import Alumno, Concepto_pagos, Plan
 
 class AlumnoFormulario (forms.Form):
     nombre = forms.CharField(label='Nombre(s)',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el nombre del alumno' , 'class':'form-control'}), max_length=100)
     apellido_paterno = forms.CharField(label='Apellido paterno',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el apellido paterno del alumno' , 'class':'form-control'}), max_length=100)
     apellido_materno = forms.CharField(label='Apellido materno',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el apellido materno del alumno' , 'class':'form-control'}), max_length=100)
-    plan = forms.CharField(label='Plan de estudios',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el plan de estudios del alumno' , 'class':'form-control'}), max_length=200)
+    plan_id = forms.ModelChoiceField(queryset=Plan.objects.all())
+    fotografia = forms.FileField(label='Fotografia',widget=forms.FileInput(attrs={'id': 'uploadImage1' , 'onchange':'previewImage(1)', 'type': 'file'}))
+    certificado = forms.FileField(label='Certificado de bachillerato',widget=forms.FileInput(attrs={'id': 'uploadImage2' , 'onchange':'previewImage(2)', 'type': 'file'}))
+    comprobante = forms.FileField(label='Comprobante de domicilio',widget=forms.FileInput(attrs={'id': 'uploadImage3' , 'onchange':'previewImage(3)', 'type': 'file'}))
 
 class Concepto_pagosFormulario (forms.Form):
     descripcion = forms.CharField(label='Descripcion',widget=forms.TextInput(attrs={'placeholder': 'Ingresa la descripcion del concepto de pago' , 'class':'form-control'}), max_length=300)

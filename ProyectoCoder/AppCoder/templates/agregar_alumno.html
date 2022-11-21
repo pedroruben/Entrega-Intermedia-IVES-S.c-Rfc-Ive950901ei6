@@ -5,14 +5,72 @@
     {% load static %}
     
     {% block contenidoFormulario %}
+        <script>
+            function previewImage(nb) {
+                var reader = new FileReader();
+                reader.readAsDataURL(document.getElementById('uploadImage' + nb).files[0]);
+                reader.onload = function (e) {
+                    document.getElementById('uploadPreview' + nb).src = e.target.result;
+                };
+            }
+        </script>
 
-        <form action="{% url 'Agregar' %}" method="POST">{% csrf_token %}
-            {% load crispy_forms_tags %}
-
-            {{ formulario_alumnos|crispy:"bootstrap4" }}
+        <div class="wrapper">
+            <form action="{% url 'Agregar' %}" method="POST" enctype="multipart/form-data">{% csrf_token %}
+                <div class="form">
+                    <div class="title">
+                        inscirpcion en linea<br>Ingresa tus datos por favor
+                    </div>
+                    <div class="inputfield">
+                        <label>Nombre(s):</label>
+                        {{ formulario_alumnos.nombre }}
+                    </div>
+                    <div class="inputfield">
+                        <label>Apellido paterno:</label>
+                        {{ formulario_alumnos.apellido_paterno }}
+                    </div>
+                    <div class="inputfield">
+                        <label>Apellido materno:</label>
+                        {{ formulario_alumnos.apellido_materno }}
+                    </div>
+                    <div class="inputfield">
+                        <label>Plan de estudio:</label>
+                        <div class="custom_select">
+                            {{ formulario_alumnos.plan_id }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="inputfield">
+                        <label>Fotografia:</label>
+                        {{ formulario_alumnos.fotografia }}
+                    </div>
+                    <div class="title">
+                        <img id="uploadPreview1" width="200" height="200" src="../../media/img/Sin título.png" />
+                    </div>
+                    <hr>
+                    <div class="inputfield">
+                        <label>Certificado de estudios:</label>
+                        {{ formulario_alumnos.certificado }}
+                    </div>
+                    <div class="title">
+                        <img id="uploadPreview2" width="200" height="200" src="../../media/img/Sin título.png" />
+                    </div>
+                    <hr>
+                    <div class="inputfield">
+                        <label>Comprobante de domicilio:</label>
+                        {{ formulario_alumnos.comprobante }}
+                    </div>
+                    <div class="title">
+                        <img id="uploadPreview3" width="200" height="200" src="../../media/img/Sin título.png" />
+                    </div>
+                    <hr>
+                    <div class="title">
+                        <a class="btn btn-secondary" href="{% url 'Agregar' %}">Cancelar</a>
+                        <input type="submit" value="Enviar" class="btn btn-primary"/>
+                    </div>
+                </div>
+            </form>
+        </div>
         
-            <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
-            <input type="submit" value="Enviar" class="btn btn-primary"/>
-        </form>
 
 {% endblock contenidoFormulario %}

@@ -1,0 +1,18 @@
+<title>Agregar alumnos</title>
+    
+{% extends 'base_formularios.html' %}
+
+    {% load static %}
+    
+    {% block contenidoFormulario %}
+
+        <form action="{% url 'Agregar' %}" method="POST">{% csrf_token %}
+            {% load crispy_forms_tags %}
+
+            {{ formulario_alumnos|crispy:"bootstrap4" }}
+        
+            <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
+            <input type="submit" value="Enviar" class="btn btn-primary"/>
+        </form>
+
+{% endblock contenidoFormulario %}

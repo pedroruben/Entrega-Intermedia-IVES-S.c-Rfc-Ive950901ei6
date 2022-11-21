@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar
+from django.conf.urls.static import static
+from django.conf import settings
+from django.contrib.auth.views import LogoutView
+from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar, loginView, register, codigo_barras
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,5 +27,11 @@ urlpatterns = [
     path('agregar_cuentas/',AgregarCuenta, name="AgregarCuentas"),
     path('buscar_cuentas/', buscar_cuentas, name="BuscarCuentas"),
     path('buscar/', buscar, name="Buscar"),
-    path('', Inicio),
+    path('', Inicio, name="Inicio"),
+    path('login/', loginView, name="Login"),
+    path('registrar/', register, name="Registrar"),
+    path('logout/', LogoutView.as_view(template_name="logout.html"), name="Logout"),
+    path('barra/', codigo_barras, name="Codigo"),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

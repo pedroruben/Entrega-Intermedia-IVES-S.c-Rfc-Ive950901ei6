@@ -70,7 +70,7 @@
 								</b></td>
 								</tr>
 								<tr>
-									<td id="l" colspan="2">Referencia:<br><br><b><?php echo "$referencia";?></b></td>
+									<td id="l" colspan="2">Referencia:<br><br><b>{{ datos_referencia.referencia }}</b></td>
 								</tr>
 								<tr>
 									<td id="l">Vence el:<br><br><b>{{ datos_referencia.vigencia }}</b></td>
@@ -82,7 +82,8 @@
 				</tr>
 				<tr>
 					<td colspan="2">
-						<img src="../../media/generated_barcode.png">
+						<!-- {{ datos_referencia.codigo }} -->
+						<img height="200px" width="595px" src="../../media/generated_barcode.png">
 					</td>
 				</tr>
 				<tr>

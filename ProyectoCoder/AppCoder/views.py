@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from .forms import AlumnoFormulario, Concepto_pagosFormulario, CuentasXcobrarFormulario
 from .models import Alumno, Concepto_pagos, CuentasXcobrar
 
-import barcode
+import barcode 
 from barcode.writer import ImageWriter
 
 # Create your views here.
@@ -67,15 +67,71 @@ def AgregarAlumno(request):
             total = 0
             for pago in concepto_pagos:
                 total = total + pago.cantidad
-            total = format(total, '0,.2f')
+            total_a_mostrar = format(total, '0,.2f')
             #:::::::::::::::::::::::::::::::::::::::::
             #se debe hacer una tabla para registrar las referencias, fecha de pago, total, al alumno que pertenecen y sus conceptos de pago
             #la referencia debe tener un total de 27 caracteres
             #la primera parte son 19 caracteres
             referencia = "000000" + str(today.year) + str(today.month) + str(today.day) + str(today.hour) + str(today.minute) + "0" #hasta aqui son 19 caracteres
+            fecha_condensada = (int(today.year) - 2009)*372;
+            fecha_condensada = fecha_condensada + ((int(today.month) - 1)*31);
+            fecha_condensada = fecha_condensada + (int(today.day)-1);
+            referencia += str(fecha_condensada)
+
+            importeCon = 0
+            digitos = total * 100
+            digitos = str(digitos)
+            limite = len(digitos)
+            i=0
+            while i<limite:
+                if i==0 or i==3 or i==6:
+                    multi=7
+                elif i==1 or i==4 or i==7: 
+                    multi=3
+                elif i==2 or i==5 or i==8: 
+                    multi=1
+                pos = (i+1) * -1
+                val = digitos[pos]
+                importeCon = importeCon + int((int(val) * int(multi)))
+                i = i+1
+            residuo = int(importeCon) % 10
+            referencia += str(residuo) + "2"
+            limiteRef = len(referencia)
+            digitosV = 0
+            i = 0
+            while i < limiteRef:
+                if i==0 or i==5 or i==10 or i==15 or i==20: 
+                    multi=11 
+                if i==1 or i==6 or i==11 or i==16 or i==21: 
+                    multi=13 
+                if i==2 or i==7 or i==12 or i==17 or i==22: 
+                    multi=17 
+                if i==3 or i==8 or i==13 or i==18 or i==23: 
+                    multi=19 
+                if i==4 or i==9 or i==14 or i==19 or i==24: 
+                    multi=23 
+                pos = (i+1) * -1
+                val = referencia[pos]
+                digitosV = digitosV + (int(val) * int(multi))
+                i = i+1
+            
+            residuoV = digitosV % 97
+            dV = residuoV + 1
+            if dV < 10:
+                referencia = referencia + '0' + str(dV)
+            else:
+                referencia = referencia + str(dV)
+            #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            #CODIGO DE BARRAS
+            barcode_format = barcode.get_barcode_class('GS1_128')
+            my_barcode = barcode_format(referencia, writer=ImageWriter())
+            my_barcode.save("media/generated_barcode", {"font_size": 8, "module_height": 5, "text_distance": 3})
+
+
+
             datos_referencia = {"nombre_usuario":nombre_usuario,"nombre":nombre_c, "apellido_paterno":apellido_paterno_C,
                             "apellido_materno":apellido_materno_c, "concepto_pagos":concepto_pagos, "referencia": referencia,
-                            "total":total, "vigencia":vigencia}
+                            "total":total_a_mostrar, "vigencia":vigencia}
 
             # return HttpResponseRedirect('/')
             return render(request, "confirmacion.html", context={"datos_referencia": datos_referencia})

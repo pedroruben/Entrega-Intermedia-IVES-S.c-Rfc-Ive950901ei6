@@ -9,7 +9,12 @@
             text-align: center;
 			
         }
-        div {
+        header{
+			text-align: center;
+			color: rgb(19,81,147);
+			font-size: 26px;
+		}
+		div {
             text-align: center;
 			aling-items: center;
         }
@@ -42,8 +47,9 @@
     </style>
 </head>
 <body>
-    <p>Se ha registrado exitosamente como {{ datos_referencia.nombre_usuario }} al igual que con la contraseña {{ datos_referencia.nombre_usuario }}<br>
-        Recuerde anotarla sera necesaria para seguir con su proceso de inscripcion</p>
+    <header>Se ha registrado exitosamente como <br> <b style="background-color: #DAAA00;"> {{ datos_referencia.nombre_usuario }} </b> <br> 
+		al igual que con la contraseña <br> <b style="background-color: #DAAA00;"> {{ datos_referencia.nombre_usuario }} </b><br><br>
+        Recuerde anotarla sera necesaria para seguir con su proceso de inscripcion</header>
 	<div id="referencia">
 		<table align="center">
 			<tbody>

@@ -13,7 +13,7 @@ from django.contrib.auth import login, logout, authenticate
 from datetime import datetime, timedelta
 
 from .forms import AlumnoFormulario, Concepto_pagosFormulario, CuentasXcobrarFormulario
-from .models import Alumno, Concepto_pagos, CuentasXcobrar
+from .models import Alumno, Concepto_pagos, CuentasXcobrar, Referencias_pagos
 
 import barcode 
 from barcode.writer import ImageWriter
@@ -73,9 +73,9 @@ def AgregarAlumno(request):
             #la referencia debe tener un total de 27 caracteres
             #la primera parte son 19 caracteres
             referencia = "000000" + str(today.year) + str(today.month) + str(today.day) + str(today.hour) + str(today.minute) + "0" #hasta aqui son 19 caracteres
-            fecha_condensada = (int(today.year) - 2009)*372;
-            fecha_condensada = fecha_condensada + ((int(today.month) - 1)*31);
-            fecha_condensada = fecha_condensada + (int(today.day)-1);
+            fecha_condensada = (int(datetime.strptime(vigencia, "%d de %b del %Y").year) - 2009)*372;
+            fecha_condensada = fecha_condensada + ((int(datetime.strptime(vigencia, "%d de %b del %Y").month) - 1)*31);
+            fecha_condensada = fecha_condensada + (int(datetime.strptime(vigencia, "%d de %b del %Y").day)-1);
             referencia += str(fecha_condensada)
 
             importeCon = 0
@@ -122,23 +122,80 @@ def AgregarAlumno(request):
             else:
                 referencia = referencia + str(dV)
             #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            #Registro en base de datos
+            alumno_obj = Alumno.objects.filter(nombre=informacionAlumno["nombre"], apellido_paterno=apellido_paterno_C, apellido_materno=apellido_materno_c)#.values()
+            id_alumno = [a.id for a in alumno_obj][0]
+            # print(int(id_alumno))
+            registro_ref = Referencias_pagos(alumno_id_id=int(id_alumno), concepto_id=[c.id for c in concepto_pagos], fecha_vencimiento=datetime.strptime(vigencia, "%d de %b del %Y"), total_pagar=total, referencia=referencia)
+            # registro_ref.save()
+            print(registro_ref)
+            #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
             #CODIGO DE BARRAS
             barcode_format = barcode.get_barcode_class('GS1_128')
             my_barcode = barcode_format(referencia, writer=ImageWriter())
             my_barcode.save("media/generated_barcode", {"font_size": 8, "module_height": 5, "text_distance": 3})
-
-
-
+            #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            #Envio de datos a la template
             datos_referencia = {"nombre_usuario":nombre_usuario,"nombre":nombre_c, "apellido_paterno":apellido_paterno_C,
                             "apellido_materno":apellido_materno_c, "concepto_pagos":concepto_pagos, "referencia": referencia,
                             "total":total_a_mostrar, "vigencia":vigencia}
-
-            # return HttpResponseRedirect('/')
             return render(request, "confirmacion.html", context={"datos_referencia": datos_referencia})
     else:
         formulario_alumnos = AlumnoFormulario()
         return render(request, "agregar_alumno.html", {"formulario_alumnos": formulario_alumnos})
 
+def buscarRef(request):
+        inner_qs = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
+        lista = Alumno.objects.filter(id__in=inner_qs) #De esta forma se buscan los id_Alumno's distintos de Referencias de pagos en Alumnos para sacar sus datos pero sin que se repitan y que solo aparezcan los que tengan referencia de pago
+        # lista = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
+        return render(request, "buscar_referencias.html", {"lista_alumnos": lista})
+
+def buscar_referencia(request):
+    if request.POST["id_del_alumno"]:
+        alumno_id = request.POST["id_del_alumno"]
+        referencia_query = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Datos del alumno
+        alumno_query = Alumno.objects.filter(id=alumno_id)
+        nombre = [a.nombre for a in alumno_query][0]
+        apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
+        apellido_materno = [a.apellido_materno for a in alumno_query][0]
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #concepto de pagos, para sacar su descripcion y cantidad a pagar
+        conceptos = [r.concepto_id for r in referencia_query][0]
+        conceptos = conceptos.replace('[', '')
+        conceptos = conceptos.replace(']', '')
+        conceptos = list(conceptos.split(","))
+        concepto_pagos = []
+        for concepto in conceptos:
+            descripcion_query = Concepto_pagos.objects.filter(id=int(concepto))
+            descripcion = [c.descripcion for c in descripcion_query][0]
+            cantidad = [c.cantidad for c in descripcion_query][0]
+            print(f'El valor de descripcion es {descripcion}')
+            concepto_pagos_str = descripcion + " con un costo de: $"+str(cantidad) +"mxn"
+            concepto_pagos.append(concepto_pagos_str)
+        #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        # Formato para la vigencia            
+        vigencia = [r.fecha_vencimiento for r in referencia_query][0]
+        vigencia = vigencia.strftime("%d de %b del %Y") # vigencia = dia de mes del año
+        #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Formato para el total
+        total = format([r.total_pagar for r in referencia_query][0], '0,.2f')
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #CODIGO DE BARRAS
+        barcode_format = barcode.get_barcode_class('GS1_128')
+        my_barcode = barcode_format([r.referencia for r in referencia_query][0], writer=ImageWriter())
+        my_barcode.save("media/generated_barcode", {"font_size": 8, "module_height": 5, "text_distance": 3})
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Envio de datos a la template
+        datos_referencia = {"nombre":nombre, "apellido_paterno":apellido_paterno,"apellido_materno":apellido_materno, 
+                            "concepto_pagos":concepto_pagos, "referencia": [r.referencia for r in referencia_query][0],
+                            "total":total, "vigencia":vigencia}
+        lista = Alumno.objects.all()
+        return render(request, "buscar_referencias.html", {"datos_referencia": datos_referencia, "lista_alumnos": lista})
+    else:
+        lista = Alumno.objects.all()
+        return render(request, "buscar_referencias.html", {"lista_alumnos": lista})
 
 def AgregarConcepto(request):
     if request.method == "POST":

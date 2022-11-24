@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 
 from .forms import AlumnoFormulario, Concepto_pagosFormulario, CuentasXcobrarFormulario
 from .models import Alumno, Concepto_pagos, CuentasXcobrar, Referencias_pagos
+from .send_mail_with_python import enviarCorreo
 
 import barcode 
 from barcode.writer import ImageWriter
@@ -139,6 +140,7 @@ def AgregarAlumno(request):
             datos_referencia = {"nombre_usuario":nombre_usuario,"nombre":nombre_c, "apellido_paterno":apellido_paterno_C,
                             "apellido_materno":apellido_materno_c, "concepto_pagos":concepto_pagos, "referencia": referencia,
                             "total":total_a_mostrar, "vigencia":vigencia}
+            enviarCorreo(nombre_c)
             return render(request, "confirmacion.html", context={"datos_referencia": datos_referencia})
     else:
         formulario_alumnos = AlumnoFormulario()
@@ -150,10 +152,48 @@ def buscarRef(request):
         # lista = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
         return render(request, "buscar_referencias.html", {"lista_alumnos": lista})
 
-def buscar_referencia(request):
+def listar_ref_por_alumno(request):
+    referencias_lista = []
     if request.POST["id_del_alumno"]:
         alumno_id = request.POST["id_del_alumno"]
-        referencia_query = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
+        referencias = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Datos del alumno
+        # alumno_query = Alumno.objects.filter(id=alumno_id)
+        # nombre = [a.nombre for a in alumno_query][0]
+        # apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
+        # apellido_materno = [a.apellido_materno for a in alumno_query][0]
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Conceptos de pago
+        datos_referencias = {}
+        for referencia in referencias:
+            conceptos = referencia.concepto_id
+            conceptos = conceptos.replace('[', '')
+            conceptos = conceptos.replace(']', '')
+            conceptos = list(conceptos.split(","))
+            concepto_pagos = []
+            for concepto in conceptos:
+                descripcion_query = Concepto_pagos.objects.filter(id=int(concepto))
+                descripcion = [c.descripcion for c in descripcion_query][0]
+                print(f'El valor de descripcion es {descripcion}')
+                concepto_pagos.append(descripcion)
+            datos_referencias = {"alumno_id":alumno_id,"id_referencia":referencia.id,"concepto_pagos":concepto_pagos,"fecha_vencimiento":referencia.fecha_vencimiento, "total_pagar":referencia.total_pagar,"referencia":referencia.referencia}
+            referencias_lista.append(datos_referencias)
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Datos del alumno
+        alumno_query = Alumno.objects.filter(id=alumno_id)
+        nombre = [a.nombre for a in alumno_query][0]
+        apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
+        apellido_materno = [a.apellido_materno for a in alumno_query][0]
+        inner_qs = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
+        lista = Alumno.objects.filter(id__in=inner_qs) #De esta forma se buscan los id_Alumno's distintos de Referencias de pagos en Alumnos para sacar sus datos pero sin que se repitan y que solo aparezcan los que tengan referencia de pago
+        return render(request, "buscar_referencias.html", {"referencias": referencias_lista, "lista_alumnos": lista})
+
+def buscar_referencia(request):
+    if request.POST["id_referencia"]:
+        id_ref = request.POST["id_referencia"]
+        alumno_id = request.POST["id_alumno"]
+        referencia_query = Referencias_pagos.objects.filter(id=id_ref)
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #Datos del alumno
         alumno_query = Alumno.objects.filter(id=alumno_id)

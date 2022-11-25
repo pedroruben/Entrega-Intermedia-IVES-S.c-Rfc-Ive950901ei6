@@ -5,37 +5,40 @@
     {% load static %}
     
     {% block contenidoFormulario %}
-      
-    <form action="{% url 'Buscar' %}" method="POST">{% csrf_token %}
-        <label>Seleccione el alumno, para buscar sus estado de cuenta</label>
-        <select name="id_del_alumno" class="form-control">
-            <option>Seleccione un alumno</option>
-            {%for lista in lista_alumnos %}
-                <option value="{{ lista.id }}">{{ lista.nombre}} {{lista.apellido_paterno}} {{lista.apellido_materno}}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
-        <input type="submit" value="Enviar" class="btn btn-primary"/>
-    </form>
 
-    {% if cuentas %}
+    {% if referencias %}
+        <br>
         <table class="table table-bordered">
-            <thead class="bg-primary">
-                <th>Alumno</th>
-                <th>Concepto</th>
-                <th>Estado</th>
+            <thead class="bg-primary"  style="color: white;">
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Conceptos de pago</th>
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Fecha de vencimiento</th>
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Total a pagar</th>
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Referencia</th>
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">  </th>
             </thead>
             <tbody>
-                {%for cuenta in cuentas %}
-                    <tr>
-                        <td>{{cuenta.alumno_id}}</td>
-                        <td>{{cuenta.concepto_id}}</td>
-                        <td>{{cuenta.estado}}</td>
+                {%for i in referencias %}
+                    <tr style="border-collapse: collapse; border: black 2px solid;">
+                        <td style="border-collapse: collapse; border: black 1px solid;">
+                            {%for concepto in i.concepto_pagos %}
+                                {{ concepto }}
+                                <hr>
+                            {% endfor %}
+                        </td>
+                        <td style="border-collapse: collapse; border: black 1px solid;">{{ i.fecha_vencimiento }}</td>
+                        <td style="border-collapse: collapse; border: black 1px solid;">{{ i.total_pagar }}</td>
+                        <td style="border-collapse: collapse; border: black 1px solid;">{{ i.referencia }}</td>
+                        <td style="border-collapse: collapse; border: black 1px solid;">
+                            <form action="{% url 'BuscarRef' %}" method="POST">{% csrf_token %}
+                                <input type="hidden" name="id_referencia" value="{{i.id_referencia}}"/>
+                                <input type="hidden" name="id_alumno" value="{{i.alumno_id}}"/>
+                                <input type="submit" value="Ver referencia"  class="btn btn-primary"/>
+                            </form>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
-        </table>  
-    {% endif %}  
+        </table>
+    {% endif %}
 
 {% endblock contenidoFormulario %}

@@ -15,11 +15,11 @@
     <header>
         <nav>
             <a href="/">Inicio</a>
-            <a href="/agregar">Agregar alumno</a>
-            <a href="/agregar_conceptos">Agregar concepto de pago</a>
-            <a href="/agregar_cuentas">Agregar cuenta por cobrar</a>
-            <a href="/buscar_cuentas">Buscar cuentas por cobrar</a>
+            <a href="/agregar">Inscripcion</a>
+            <a href="/buscar_cuentas">Ver pagos</a>
             {% if user.is_staff %}
+                <a href="/agregar_conceptos">Agregar concepto de pago</a>
+                <a href="/agregar_cuentas">Agregar cuenta por cobrar</a>
                 <a href="/registrar">Registrar usuarios</a>
                 <a href="/buscarRef">Buscar referencia</a>
             {% endif %}

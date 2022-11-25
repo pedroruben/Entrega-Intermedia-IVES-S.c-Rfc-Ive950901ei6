@@ -25,11 +25,39 @@ from barcode.writer import ImageWriter
 def Inicio(request):
     return render(request, "inicio.html")
 
+# def buscar_cuentas(request):
+#     lista = Alumno.objects.all()
+#     return render(request, "buscar_cuentas.html", {"lista_alumnos": lista})
 
-def buscar_cuentas(request):
-    lista = Alumno.objects.all()
-    return render(request, "buscar_cuentas.html", {"lista_alumnos": lista})
-
+@login_required
+def buscar_cuentas(request): #tratar de fusionar el de referencias de staff para alumnos, pero que pueda funcionar para ambos
+    usuario = request.user #preguntar si es staff, sino tomar el id y si lo es procede como el de buscar referencias
+    alumno_id = usuario.id
+    referencias_lista = []
+    referencias = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    #Conceptos de pago
+    datos_referencias = {}
+    for referencia in referencias:
+        conceptos = referencia.concepto_id
+        conceptos = conceptos.replace('[', '')
+        conceptos = conceptos.replace(']', '')
+        conceptos = list(conceptos.split(","))
+        concepto_pagos = []
+        for concepto in conceptos:
+            descripcion_query = Concepto_pagos.objects.filter(id=int(concepto))
+            descripcion = [c.descripcion for c in descripcion_query][0]
+            print(f'El valor de descripcion es {descripcion}')
+            concepto_pagos.append(descripcion)
+        datos_referencias = {"alumno_id":alumno_id,"id_referencia":referencia.id,"concepto_pagos":concepto_pagos,"fecha_vencimiento":referencia.fecha_vencimiento, "total_pagar":referencia.total_pagar,"referencia":referencia.referencia}
+        referencias_lista.append(datos_referencias)
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    #Datos del alumno
+    alumno_query = Alumno.objects.filter(id=alumno_id)
+    nombre = [a.nombre for a in alumno_query][0]
+    apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
+    apellido_materno = [a.apellido_materno for a in alumno_query][0]
+    return render(request, "buscar_referencias.html", {"referencias": referencias_lista})
 
 def buscar(request):
     if request.POST["id_del_alumno"]:

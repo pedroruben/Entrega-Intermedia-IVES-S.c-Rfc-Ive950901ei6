@@ -5,21 +5,23 @@
     {% load static %}
     
     {% block contenidoFormulario %}
-    <div class="opciones">
-        <form action="{% url 'ListarRef' %}" method="POST">{% csrf_token %}
-            <label>Seleccione el alumno, para buscar sus estado de cuenta</label>
-            <select name="id_del_alumno" class="form-control">
-                <option>Seleccione un alumno</option>
-                {%for lista in lista_alumnos %}
-                    <option value="{{ lista.id }}">{{ lista.nombre}} {{lista.apellido_paterno}} {{lista.apellido_materno}}</option>
-                {% endfor %}
-            </select>
-            <br>
-            <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
-            <input type="submit" value="Enviar" class="btn btn-primary"/>
-        </form>
-    </div>
-    
+
+    {% if user.is_staff %}
+        <div class="opciones">
+            <form action="{% url 'ListarRef' %}" method="POST">{% csrf_token %}
+                <label>Seleccione el alumno, para buscar sus estado de cuenta</label>
+                <select name="id_del_alumno" class="form-control">
+                    <option>Seleccione un alumno</option>
+                    {%for lista in lista_alumnos %}
+                        <option value="{{ lista.id }}">{{ lista.nombre}} {{lista.apellido_paterno}} {{lista.apellido_materno}}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
+                <input type="submit" value="Enviar" class="btn btn-primary"/>
+            </form>
+        </div>
+    {% endif %}
 
     {% if referencias %}
         <br>

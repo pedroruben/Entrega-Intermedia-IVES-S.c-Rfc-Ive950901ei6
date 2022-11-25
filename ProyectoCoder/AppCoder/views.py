@@ -46,7 +46,9 @@ def AgregarAlumno(request):
         if formulario_alumnos.is_valid():
             informacionAlumno = formulario_alumnos.cleaned_data
             alumno = Alumno(nombre=informacionAlumno["nombre"], apellido_paterno=informacionAlumno["apellido_paterno"],
-                            apellido_materno=informacionAlumno["apellido_materno"], plan_id=informacionAlumno["plan_id"], fotografia=informacionAlumno["fotografia"], certificado=informacionAlumno["certificado"], comprobante=informacionAlumno["comprobante"])
+                            apellido_materno=informacionAlumno["apellido_materno"], correo_electronico=informacionAlumno["correo_electronico"], 
+                            plan_id=informacionAlumno["plan_id"], fotografia=informacionAlumno["fotografia"], certificado=informacionAlumno["certificado"], 
+                            comprobante=informacionAlumno["comprobante"])
             # alumno.save()
             nombre_c = informacionAlumno["nombre"]
             apellido_paterno_C = informacionAlumno["apellido_paterno"]
@@ -136,11 +138,16 @@ def AgregarAlumno(request):
             my_barcode = barcode_format(referencia, writer=ImageWriter())
             my_barcode.save("media/generated_barcode", {"font_size": 8, "module_height": 5, "text_distance": 3})
             #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+            #Envio de correo
+            correo_electronico = informacionAlumno["correo_electronico"]
+            asunto = "Inscripcion completada - Universidad IVES"
+            nombre_completo = informacionAlumno["apellido_paterno"]+ " " + informacionAlumno["apellido_materno"]+ " " + informacionAlumno["nombre"]
+            enviarCorreo(correo_electronico, asunto, nombre_completo, nombre_usuario)
+            #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
             #Envio de datos a la template
             datos_referencia = {"nombre_usuario":nombre_usuario,"nombre":nombre_c, "apellido_paterno":apellido_paterno_C,
                             "apellido_materno":apellido_materno_c, "concepto_pagos":concepto_pagos, "referencia": referencia,
                             "total":total_a_mostrar, "vigencia":vigencia}
-            enviarCorreo(nombre_c)
             return render(request, "confirmacion.html", context={"datos_referencia": datos_referencia})
     else:
         formulario_alumnos = AlumnoFormulario()

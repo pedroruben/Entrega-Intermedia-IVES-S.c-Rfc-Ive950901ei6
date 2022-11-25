@@ -3,9 +3,10 @@ from django.forms import ModelForm
 from .models import Alumno, Concepto_pagos, Plan
 
 class AlumnoFormulario (forms.Form):
-    nombre = forms.CharField(label='Nombre(s)',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el nombre del alumno' , 'class':'form-control'}), max_length=100)
-    apellido_paterno = forms.CharField(label='Apellido paterno',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el apellido paterno del alumno' , 'class':'form-control'}), max_length=100)
-    apellido_materno = forms.CharField(label='Apellido materno',widget=forms.TextInput(attrs={'placeholder': 'Ingresa el apellido materno del alumno' , 'class':'form-control'}), max_length=100)
+    nombre = forms.CharField(label='Nombre(s)',widget=forms.TextInput(attrs={'placeholder': 'Ingrese su nombre' , 'class':'form-control'}), max_length=100)
+    apellido_paterno = forms.CharField(label='Apellido paterno',widget=forms.TextInput(attrs={'placeholder': 'Ingrese su apellido paterno' , 'class':'form-control'}), max_length=100)
+    apellido_materno = forms.CharField(label='Apellido materno',widget=forms.TextInput(attrs={'placeholder': 'Ingrese su apellido materno' , 'class':'form-control'}), max_length=100)
+    correo_electronico = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Ingrese su correo -> ejemplo@gmail.com' , 'class':'form-control'}))
     plan_id = forms.ModelChoiceField(queryset=Plan.objects.all())
     fotografia = forms.FileField(label='Fotografia',widget=forms.FileInput(attrs={'id': 'uploadImage1' , 'onchange':'previewImage(1)', 'type': 'file'}))
     certificado = forms.FileField(label='Certificado de bachillerato',widget=forms.FileInput(attrs={'id': 'uploadImage2' , 'onchange':'previewImage(2)', 'type': 'file'}))

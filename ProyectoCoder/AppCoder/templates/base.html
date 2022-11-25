@@ -15,17 +15,17 @@
     <header>
         <nav>
             <a href="/">Inicio</a>
-            <a href="/agregar">Inscripcion</a>
-            <a href="/buscar_cuentas">Ver pagos</a>
-            {% if user.is_staff %}
-                <a href="/agregar_conceptos">Agregar concepto de pago</a>
-                <a href="/agregar_cuentas">Agregar cuenta por cobrar</a>
-                <a href="/registrar">Registrar usuarios</a>
-                <a href="/buscarRef">Buscar referencia</a>
-            {% endif %}
             {% if user.is_authenticated %}
+                <a href="/buscar_cuentas">Ver pagos</a>
+                {% if user.is_staff %}
+                    <a href="/agregar_conceptos">Agregar concepto de pago</a>
+                    <a href="/agregar_cuentas">Agregar cuenta por cobrar</a>
+                    <a href="/registrar">Registrar usuarios</a>
+                    <a href="/buscarRef">Buscar referencia</a>
+                {% endif %}
                 <a class="btn btn-secondary" href="{% url 'Logout' %}">Salir ({{user.username}})</a>
             {% else %}
+                <a href="/agregar">Inscripcion</a>
                 <a class="btn btn-success" href="{% url 'Login' %}">Iniciar sesión</a>
             {% endif %}
         </nav>

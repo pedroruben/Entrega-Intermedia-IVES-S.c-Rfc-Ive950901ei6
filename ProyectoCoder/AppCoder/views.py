@@ -66,7 +66,7 @@ def buscar(request):
         lista = Alumno.objects.all()
         return render(request, "buscar_cuentas.html", {"cuentas": cuentas, "lista_alumnos": lista})
 
-@login_required
+
 def AgregarAlumno(request):
     if request.method == "POST":
         formulario_alumnos = AlumnoFormulario(request.POST, request.FILES)

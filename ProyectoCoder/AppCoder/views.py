@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView
 from django.views.generic.detail import DetailView
@@ -21,7 +21,6 @@ from barcode.writer import ImageWriter
 
 # Create your views here.
 
-
 def Inicio(request):
     return render(request, "inicio.html")
 
@@ -30,8 +29,8 @@ def Inicio(request):
 #     return render(request, "buscar_cuentas.html", {"lista_alumnos": lista})
 
 @login_required
-def buscar_cuentas(request): #tratar de fusionar el de referencias de staff para alumnos, pero que pueda funcionar para ambos
-    usuario = request.user #preguntar si es staff, sino tomar el id y si lo es procede como el de buscar referencias
+def buscar_cuentas(request):
+    usuario = request.user
     alumno_id = usuario.id
     referencias_lista = []
     referencias = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
@@ -59,6 +58,7 @@ def buscar_cuentas(request): #tratar de fusionar el de referencias de staff para
     apellido_materno = [a.apellido_materno for a in alumno_query][0]
     return render(request, "buscar_referencias.html", {"referencias": referencias_lista})
 
+@login_required
 def buscar(request):
     if request.POST["id_del_alumno"]:
         alumno_id = request.POST["id_del_alumno"]
@@ -66,7 +66,7 @@ def buscar(request):
         lista = Alumno.objects.all()
         return render(request, "buscar_cuentas.html", {"cuentas": cuentas, "lista_alumnos": lista})
 
-
+#::::::::::::::INSCRIPCION:::::::::::::::::::::::::::::::::::::::::::
 def AgregarAlumno(request):
     if request.method == "POST":
         formulario_alumnos = AlumnoFormulario(request.POST, request.FILES)
@@ -181,12 +181,15 @@ def AgregarAlumno(request):
         formulario_alumnos = AlumnoFormulario()
         return render(request, "agregar_alumno.html", {"formulario_alumnos": formulario_alumnos})
 
+#:::::::::::::::::::::REFERENCIA::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+@staff_member_required
 def buscarRef(request):
         inner_qs = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
         lista = Alumno.objects.filter(id__in=inner_qs) #De esta forma se buscan los id_Alumno's distintos de Referencias de pagos en Alumnos para sacar sus datos pero sin que se repitan y que solo aparezcan los que tengan referencia de pago
         # lista = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
         return render(request, "buscar_referencias.html", {"lista_alumnos": lista})
 
+@staff_member_required
 def listar_ref_por_alumno(request):
     referencias_lista = []
     if request.POST["id_del_alumno"]:
@@ -212,7 +215,9 @@ def listar_ref_por_alumno(request):
                 descripcion = [c.descripcion for c in descripcion_query][0]
                 print(f'El valor de descripcion es {descripcion}')
                 concepto_pagos.append(descripcion)
-            datos_referencias = {"alumno_id":alumno_id,"id_referencia":referencia.id,"concepto_pagos":concepto_pagos,"fecha_vencimiento":referencia.fecha_vencimiento, "total_pagar":referencia.total_pagar,"referencia":referencia.referencia}
+            cambiar_estado = False
+            datos_referencias = {"alumno_id":alumno_id,"id_referencia":referencia.id,"concepto_pagos":concepto_pagos,"fecha_vencimiento":referencia.fecha_vencimiento, 
+                "total_pagar":referencia.total_pagar,"referencia":referencia.referencia, "estado":referencia.estado, "cambiar_estado": cambiar_estado}
             referencias_lista.append(datos_referencias)
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         #Datos del alumno
@@ -224,6 +229,7 @@ def listar_ref_por_alumno(request):
         lista = Alumno.objects.filter(id__in=inner_qs) #De esta forma se buscan los id_Alumno's distintos de Referencias de pagos en Alumnos para sacar sus datos pero sin que se repitan y que solo aparezcan los que tengan referencia de pago
         return render(request, "buscar_referencias.html", {"referencias": referencias_lista, "lista_alumnos": lista})
 
+@staff_member_required
 def buscar_referencia(request):
     if request.POST["id_referencia"]:
         id_ref = request.POST["id_referencia"]
@@ -267,11 +273,97 @@ def buscar_referencia(request):
                             "concepto_pagos":concepto_pagos, "referencia": [r.referencia for r in referencia_query][0],
                             "total":total, "vigencia":vigencia}
         lista = Alumno.objects.all()
-        return render(request, "buscar_referencias.html", {"datos_referencia": datos_referencia, "lista_alumnos": lista})
+        return render(request, "referencia.html", {"datos_referencia": datos_referencia})
     else:
         lista = Alumno.objects.all()
         return render(request, "buscar_referencias.html", {"lista_alumnos": lista})
 
+def actRef(request):
+    referencias_lista = []
+    if request.POST["id_referencia"]:
+        referencia_id = request.POST["id_referencia"]
+        alumno_id = request.POST["id_alumno"]
+        referencias = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Conceptos de pago
+        datos_referencias = {}
+        for referencia in referencias:
+            conceptos = referencia.concepto_id
+            conceptos = conceptos.replace('[', '')
+            conceptos = conceptos.replace(']', '')
+            conceptos = list(conceptos.split(","))
+            concepto_pagos = []
+            for concepto in conceptos:
+                descripcion_query = Concepto_pagos.objects.filter(id=int(concepto))
+                descripcion = [c.descripcion for c in descripcion_query][0]
+                concepto_pagos.append(descripcion)
+            
+            if referencia.id == int(referencia_id):
+                print('Es igual')
+                cambiar_estado = True
+            else:
+                print('No es igual')
+                cambiar_estado = False
+            datos_referencias = {"alumno_id":alumno_id,"id_referencia":referencia.id,"concepto_pagos":concepto_pagos,"fecha_vencimiento":referencia.fecha_vencimiento, 
+                "total_pagar":referencia.total_pagar,"referencia":referencia.referencia, "estado":referencia.estado, "cambiar_estado": cambiar_estado}
+            referencias_lista.append(datos_referencias)
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Datos del alumno
+        alumno_query = Alumno.objects.filter(id=alumno_id)
+        nombre = [a.nombre for a in alumno_query][0]
+        apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
+        apellido_materno = [a.apellido_materno for a in alumno_query][0]
+        inner_qs = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
+        lista = Alumno.objects.filter(id__in=inner_qs) #De esta forma se buscan los id_Alumno's distintos de Referencias de pagos en Alumnos para sacar sus datos pero sin que se repitan y que solo aparezcan los que tengan referencia de pago
+        return render(request, "buscar_referencias.html", {"referencias": referencias_lista, "lista_alumnos": lista})
+
+def guardarActRef(request):
+    referencias_lista = []
+    if request.POST["id_referencia"]:
+        referencia_id = request.POST["id_referencia"]
+        alumno_id = request.POST["id_alumno"]
+        estado = request.GET("select_estado")
+        print(type(estado))
+        #Referencias_pagos.objects.filter(id=referencia_id).update(estado=estado)
+        referencias = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Datos del alumno
+        # alumno_query = Alumno.objects.filter(id=alumno_id)
+        # nombre = [a.nombre for a in alumno_query][0]
+        # apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
+        # apellido_materno = [a.apellido_materno for a in alumno_query][0]
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Conceptos de pago
+        datos_referencias = {}
+        for referencia in referencias:
+            conceptos = referencia.concepto_id
+            conceptos = conceptos.replace('[', '')
+            conceptos = conceptos.replace(']', '')
+            conceptos = list(conceptos.split(","))
+            concepto_pagos = []
+            for concepto in conceptos:
+                descripcion_query = Concepto_pagos.objects.filter(id=int(concepto))
+                descripcion = [c.descripcion for c in descripcion_query][0]
+                concepto_pagos.append(descripcion)
+            cambiar_estado = False
+            datos_referencias = {"alumno_id":alumno_id,"id_referencia":referencia.id,"concepto_pagos":concepto_pagos,"fecha_vencimiento":referencia.fecha_vencimiento, 
+                "total_pagar":referencia.total_pagar,"referencia":referencia.referencia, "estado":referencia.estado, "cambiar_estado": cambiar_estado}
+            referencias_lista.append(datos_referencias)
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Datos del alumno
+        alumno_query = Alumno.objects.filter(id=alumno_id)
+        nombre = [a.nombre for a in alumno_query][0]
+        apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
+        apellido_materno = [a.apellido_materno for a in alumno_query][0]
+        inner_qs = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
+        lista = Alumno.objects.filter(id__in=inner_qs) #De esta forma se buscan los id_Alumno's distintos de Referencias de pagos en Alumnos para sacar sus datos pero sin que se repitan y que solo aparezcan los que tengan referencia de pago
+        return render(request, "buscar_referencias.html", {"referencias": referencias_lista, "lista_alumnos": lista})
+
+    
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+@staff_member_required
 def AgregarConcepto(request):
     if request.method == "POST":
         formulario_concepto = Concepto_pagosFormulario(request.POST)
@@ -289,7 +381,7 @@ def AgregarConcepto(request):
         formulario_concepto = Concepto_pagosFormulario()
         return render(request, "agregar_conceptos.html", {"formulario_concepto": formulario_concepto})
 
-
+@staff_member_required
 def AgregarCuenta(request):
     if request.method == "POST":
         formulario_cuenta = CuentasXcobrarFormulario(request.POST)

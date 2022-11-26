@@ -18,7 +18,7 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.views import LogoutView
-from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar, loginView, register, codigo_barras, buscar_referencia, buscarRef, listar_ref_por_alumno
+from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar, loginView, register, codigo_barras, buscar_referencia, buscarRef, listar_ref_por_alumno, actRef, guardarActRef
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,6 +30,8 @@ urlpatterns = [
     path('buscarRef/', buscarRef, name="BuscarR"),
     path('listar_referencia/', listar_ref_por_alumno, name="ListarRef"),
     path('buscar_referencia/', buscar_referencia, name="BuscarRef"),
+    path('actualizar_referencia/', actRef, name="ActRef"),
+    path('guardar_referencia/', guardarActRef, name="GuardarActRef"),
     path('', Inicio, name="Inicio"),
     path('login/', loginView, name="Login"),
     path('registrar/', register, name="Registrar"),

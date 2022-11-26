@@ -2,13 +2,19 @@
 <html>
 <head>
 	<meta charset="UTF-8">
+    <title>Confirmacion</title>
 	 <style type="text/css">
         td, th {
             padding: 5px;
             text-align: center;
 			
         }
-        div {
+        header{
+			text-align: center;
+			color: rgb(19,81,147);
+			font-size: 26px;
+		}
+		div {
             text-align: center;
 			aling-items: center;
         }
@@ -40,23 +46,6 @@
 		}
     </style>
 </head>
-<?php
-	$nombre = strip_tags($_POST['nombre']);
-	$paterno = strip_tags($_POST['paterno']);
-	$materno = strip_tags($_POST['materno']);
-	$dia = strip_tags($_POST['dia']);
-	$mes = strip_tags($_POST['mes']);
-	$año = strip_tags($_POST['año']);
-	$concepto = strip_tags($_POST['concepto']);
-	$total = strip_tags($_POST['total']);
-	$referencia = strip_tags($_POST['referencia']);
-	/* "strip_tags" revisa que no haya ninguna etiqueta html o php en los datos que se van a recuperar por el metodo POST y si las hay las elimina */
-	
-	if (empty($nombre) || empty($paterno) || empty($materno) || empty($dia) || empty($mes) || empty($año) || empty($concepto) || empty($total) || empty($referencia)){
-		header("Location: http://localhost/moodle/my/");
-	}
-	/* Revisa que no haya variables vacias, si las hay redirecciona a moodle/my */
-?>
 <body>
 	<div id="referencia">
 		<table align="center">
@@ -74,17 +63,21 @@
 						<table id="b" style="width:100%" border="1" align="center">
 							<tbody>
 								<tr>
-									<td id="l" colspan="2">Alumno:<br><br><b><?php echo "$paterno $materno $nombre" ?></b></td>
+									<td id="l" colspan="2">Alumno:<br><br><b>{{ datos_referencia.apellido_paterno}} {{datos_referencia.apellido_materno}} {{datos_referencia.nombre}}</b></td>
 								</tr>
 								<tr>
-									<td id="l" colspan="2">Concepto:<br><br><b><?php echo "$concepto"; ?></b></td>
+									<td id="l" colspan="2">Concepto:<br><br><b>
+										{%for lista in datos_referencia.concepto_pagos %}
+											{{lista}} <br>
+										{% endfor %}
+								</b></td>
 								</tr>
 								<tr>
-									<td id="l" colspan="2">Referencia:<br><br><b><?php echo "$referencia";?></b></td>
+									<td id="l" colspan="2">Referencia:<br><br><b>{{ datos_referencia.referencia }}</b></td>
 								</tr>
 								<tr>
-									<td id="l">Vence el:<br><br><b><?php echo "$dia",' de ',"$mes",' del ',"$año";?></b></td>
-									<td id="r">Cantidad:<br><br><b>$<?php echo number_format(floatval($total), 2, '.', ','); ?></b></td>
+									<td id="l">Vence el:<br><br><b>{{ datos_referencia.vigencia }}</b></td>
+									<td id="r">Cantidad:<br><br><b>$ {{ datos_referencia.total }}</b></td>
 								</tr>
 							</tbody>
 						</table>
@@ -92,7 +85,8 @@
 				</tr>
 				<tr>
 					<td colspan="2">
-						<img src="../../media/generated_barcode.png">
+						<!-- {{ datos_referencia.codigo }} -->
+						<img height="200px" width="595px" src="../../media/generated_barcode.png">
 					</td>
 				</tr>
 				<tr>

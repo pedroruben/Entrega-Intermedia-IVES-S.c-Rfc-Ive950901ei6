@@ -1,4 +1,8 @@
 td, th{
     border-collapse: collapse; 
     border: black 2px solid;
+    text-align: center;
+}
+table{
+    text-align: center;
 }

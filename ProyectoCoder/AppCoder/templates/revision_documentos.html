@@ -1,0 +1,94 @@
+<title>Revision de documentos por alumnos</title>
+    
+{% extends 'base_formularios.html' %}
+
+    {% load static %}
+    
+    {% block contenidoFormulario %}
+
+    {% if user.is_staff %}
+        <div class="opciones">
+            <form action="{% url 'ListarDocs' %}" method="POST">{% csrf_token %}
+                <label>Seleccione el alumno, para buscar sus estado de cuenta</label>
+                <select name="id_del_alumno" class="form-control">
+                    <option>Seleccione un alumno</option>
+                    {%for lista in lista_alumnos %}
+                        <option value="{{ lista.id }}">{{ lista.nombre}} {{lista.apellido_paterno}} {{lista.apellido_materno}}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <input type="reset" value="Cancelar" class= "btn btn-secondary"/>
+                <input type="submit" value="Enviar" class="btn btn-primary"/>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if documentos_alumno %}
+    <br>
+    <table class="table table-bordered">
+        <thead class="bg-primary"  style="color: white;">
+            <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">FOTOGRAFIA</th>
+            <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">CERTIFICADO DE ESTUDIOS</th>
+            <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">COMPROBANTE DOMICILIO</th>
+        </thead>
+        <tbody>
+            {%for j in documentos_alumno %}
+                <tr style="border-collapse: collapse; border: black 2px solid;">
+                    <td style="border-collapse: collapse; border: black 1px solid;"><a href="../../media/{{ j.fotografia }}"><img width="100px" height="100px" src="../../media/{{ j.fotografia }}" alt=""></a></td>
+                    <td style="border-collapse: collapse; border: black 1px solid;"><a href="../../media/{{ j.certificado }}"><img width="100px" height="100px" src="../../media/{{ j.certificado }}" alt=""></a></td>
+                    <td style="border-collapse: collapse; border: black 1px solid;"><a href="../../media/{{ j.comprobante }}"><img width="100px" height="100px" src="../../media/{{ j.comprobante }}" alt=""></a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if documentos %}
+        <br>
+        <table class="table table-bordered">
+            <thead class="bg-primary"  style="color: white;">
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Documento</th>
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Ultima fecha interaccion</th>
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Estado</th>
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Observaciones</th>
+                <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">Boton</th>
+            </thead>
+            <tbody>
+                {%for i in documentos %}
+                    <tr style="border-collapse: collapse; border: black 2px solid;">
+                        <td style="border-collapse: collapse; border: black 1px solid;">{{ i.nombre_doc }}</td>
+                        <td style="border-collapse: collapse; border: black 1px solid;">{{ i.fecha }}</td>
+                        <td style="border-collapse: collapse; border: black 1px solid;">{{ i.estatus }}</td>
+                        <td style="border-collapse: collapse; border: black 1px solid;">
+                            {% if i.cambiar_estado %}
+                                <form action="{% url 'GuardarActDoc' %}" method="POST">{% csrf_token %}
+                                    <input type="text" name="observaciones" placeholder="Escriba las observaciones que encontró en este documento">
+                                    <input type="hidden" name="id_documento" value="{{i.id}}"/>
+                                    <input type="hidden" name="id_alumno" value="{{i.alumno_id_id}}"/>
+                                    <input type="submit" value="Notificar observaciones"  class="btn btn-primary"/>
+                                </form>
+                            {% else %}
+                                {{ i.observaciones }}
+                            {% endif %}
+                        </td>
+                        <td style="border-collapse: collapse; border: black 1px solid;">
+                                {% if i.cambiar_estado %}
+                                    <form action="{% url 'GuardarActDoc' %}" method="POST">{% csrf_token %}
+                                        <input type="hidden" name="id_referencia" value="{{i.id_referencia}}"/>
+                                        <input type="hidden" name="id_alumno" value="{{i.alumno_id}}"/>
+                                        <input type="submit" value="Cambiar a APROBADO"  class="btn btn-primary"/>
+                                    </form>
+                                {% else %}
+                                    <form action="{% url 'ActDoc' %}" method="POST">{% csrf_token %}
+                                        <input type="hidden" name="id_documento" value="{{i.id}}"/>
+                                        <input type="hidden" name="id_alumno" value="{{i.alumno_id_id}}"/>
+                                        <input type="submit" value="Cambiar estado"  class="btn btn-primary"/>
+                                    </form>
+                                {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock contenidoFormulario %}

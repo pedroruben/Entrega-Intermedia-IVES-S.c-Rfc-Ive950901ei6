@@ -47,26 +47,21 @@
                         <td style="border-collapse: collapse; border: black 1px solid;">{{ i.total_pagar }}</td>
                         <td style="border-collapse: collapse; border: black 1px solid;">
                             {{ i.estado }}
-                            {% if i.cambiar_estado %}
-                            <!-- poner select para los estado y boton aceptar -->
-                                <p>Es true!</p>
-                                <form action="{% url 'GuardarActRef' %}" method="POST">{% csrf_token %}
-                                    <select name="select_estados">
-                                        <option value="">Seleccione un estado, por favor</option>
-                                        <option value="Por pagar">Por pagar</option>
-                                        <option value="Pagado">Pagado</option>
-                                        <option value="Vencido">Vencido</option>
-                                      </select>
-                                    <input type="hidden" name="id_referencia" value="{{i.id_referencia}}"/>
-                                    <input type="hidden" name="id_alumno" value="{{i.alumno_id}}"/>
-                                    <input type="submit" value="Aceptar"  class="btn btn-primary"/>
-                                </form>
-                            {% else %}
-                                <form action="{% url 'ActRef' %}" method="POST">{% csrf_token %}
-                                    <input type="hidden" name="id_referencia" value="{{i.id_referencia}}"/>
-                                    <input type="hidden" name="id_alumno" value="{{i.alumno_id}}"/>
-                                    <input type="submit" value="Cambiar estado"  class="btn btn-primary"/>
-                                </form>
+                            {% if user.is_staff%}
+                                {% if i.cambiar_estado %}
+                                    <form action="{% url 'GuardarActRef' %}" method="POST">{% csrf_token %}
+                                        <input type="hidden" name="estado_pagado" value="Pagado"/>
+                                        <input type="hidden" name="id_referencia" value="{{i.id_referencia}}"/>
+                                        <input type="hidden" name="id_alumno" value="{{i.alumno_id}}"/>
+                                        <input type="submit" value="Cambiar a PAGADO"  class="btn btn-primary"/>
+                                    </form>
+                                {% else %}
+                                    <form action="{% url 'ActRef' %}" method="POST">{% csrf_token %}
+                                        <input type="hidden" name="id_referencia" value="{{i.id_referencia}}"/>
+                                        <input type="hidden" name="id_alumno" value="{{i.alumno_id}}"/>
+                                        <input type="submit" value="Cambiar estado"  class="btn btn-primary"/>
+                                    </form>
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td style="border-collapse: collapse; border: black 1px solid;">{{ i.referencia }}</td>

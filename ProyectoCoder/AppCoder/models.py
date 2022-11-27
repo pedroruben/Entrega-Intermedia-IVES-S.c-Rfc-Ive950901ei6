@@ -56,6 +56,8 @@ class Referencias_pagos (models.Model):
     total_pagar = models.IntegerField()
     referencia = models.CharField(max_length=30)
     estado = models.CharField(max_length=50, null=True)
+    fecha_creacion = models.DateField(null=True)
+    cantidad_programada = models.IntegerField(null=True)
 
     def __str__(self):
         return f'{self.alumno_id} con valor de: ${self.total_pagar} y que vence el: {self.fecha_vencimiento}'

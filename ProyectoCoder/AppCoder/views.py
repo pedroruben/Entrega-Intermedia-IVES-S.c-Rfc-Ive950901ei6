@@ -248,7 +248,23 @@ def AgregarAlumno(request):
             correo_electronico = informacionAlumno["correo_electronico"]
             asunto = "Inscripcion completada - Universidad IVES"
             nombre_completo = informacionAlumno["apellido_paterno"]+ " " + informacionAlumno["apellido_materno"]+ " " + informacionAlumno["nombre"]
-            enviarCorreo(correo_electronico, asunto, nombre_completo, nombre_usuario)
+            txt = "Hola "+nombre_completo+", por medio de la presente te informamos que tu registro en Universidad IVES se ha realizado correctamente, sin embargo, para completar tu proceso de inscripción aún falta que realices el pago del mismo. Por favor se te solicita que ingrese nuevamente a … y que inicies sesión con el nombre de usuario "+nombre_usuario+" y con la contraseña "+nombre_usuario+" , allí podrás descargar tu referencia de pago y se te notificara el estado de tu proceso de inscripción."
+            mensaje = """\
+            <html>
+            <head></head>
+            <body>
+                <p>Hola """+nombre_completo+"""<br>
+                por medio de la presente te informamos que tu registro en Universidad IVES se ha realizado correctamente, <br>
+                sin embargo, para completar tu proceso de inscripción aún falta que realices el pago del mismo. <br>
+                Por favor se te solicita que ingrese nuevamente a … <br>
+                y que inicies sesión con el nombre de usuario <b style="background-color: #DAAA00;"> """+nombre_usuario+""" </b> y con la contraseña 
+                <b style="background-color: #DAAA00;">"""+nombre_usuario+""" </b>, <br>
+                allí podrás descargar tu referencia de pago y se te notificara el estado de tu proceso de inscripción.
+            </p>
+            </body>
+            </html>
+            """
+            enviarCorreo(correo_electronico, asunto, mensaje, txt)
             #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
             #Envio de datos a la template
             datos_referencia = {"nombre_usuario":nombre_usuario,"nombre":nombre_c, "apellido_paterno":apellido_paterno_C,
@@ -621,7 +637,6 @@ def actDoc(request):
         alumno_id = request.POST["id_alumno"]
         documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #Conceptos de pago
         datos_documento = {}
         for documento in documentos:
             if documento.id == int(documento_id):
@@ -641,48 +656,110 @@ def actDoc(request):
         return render(request, "revision_documentos.html", {"documentos": documentos_lista, "lista_alumnos": lista})
 
 @staff_member_required
-def guardarActDoc(request):
-    referencias_lista = []
+def guardarActDoc(request): #<---Para aprobar los documentos
+    lista = Alumno.objects.all()
     if request.POST["id_documento"]:
-        referencia_id = request.POST["id_documento"]
+        documento_id = request.POST["id_documento"]
         alumno_id = request.POST["id_alumno"]
-        estado = request.POST["estado_pagado"]
-        Referencias_pagos.objects.filter(id=referencia_id).update(estado=estado)
-        referencias = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #Datos del alumno
-        # alumno_query = Alumno.objects.filter(id=alumno_id)
-        # nombre = [a.nombre for a in alumno_query][0]
-        # apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
-        # apellido_materno = [a.apellido_materno for a in alumno_query][0]
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #Conceptos de pago
-        datos_referencias = {}
-        for referencia in referencias:
-            conceptos = referencia.concepto_id
-            conceptos = conceptos.replace('[', '')
-            conceptos = conceptos.replace(']', '')
-            conceptos = list(conceptos.split(","))
-            concepto_pagos = []
-            for concepto in conceptos:
-                descripcion_query = Concepto_pagos.objects.filter(id=int(concepto))
-                descripcion = [c.descripcion for c in descripcion_query][0]
-                concepto_pagos.append(descripcion)
-            cambiar_estado = False
-            datos_referencias = {"alumno_id":alumno_id,"id_referencia":referencia.id,"concepto_pagos":concepto_pagos,"fecha_vencimiento":referencia.fecha_vencimiento, 
-                "total_pagar":referencia.total_pagar,"referencia":referencia.referencia, "estado":referencia.estado, "cambiar_estado": cambiar_estado}
-            referencias_lista.append(datos_referencias)
-        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        #Datos del alumno
-        alumno_query = Alumno.objects.filter(id=alumno_id)
-        nombre = [a.nombre for a in alumno_query][0]
-        apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
-        apellido_materno = [a.apellido_materno for a in alumno_query][0]
-        inner_qs = Referencias_pagos.objects.all().values('alumno_id_id').distinct()
-        lista = Alumno.objects.filter(id__in=inner_qs) #De esta forma se buscan los id_Alumno's distintos de Referencias de pagos en Alumnos para sacar sus datos pero sin que se repitan y que solo aparezcan los que tengan referencia de pago
-        return render(request, "buscar_referencias.html", {"referencias": referencias_lista, "lista_alumnos": lista})
+        #Día actual
+        hoy = date.today()
+        Estatus_doc.objects.filter(id=documento_id).update(estatus="Aprobado", fecha=hoy) #Cambia el estado del doc a aprobado
+        #se vuelven a buscar los documentos para verlos actualizados
+        documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
+        documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
+        return render(request, "revision_documentos.html", {"documentos":documentos, "documentos_alumno":documentos_alumno,"lista_alumnos": lista})
 
-#falta terminar cuando el doc sea aprovado
-#vista para actualizar la observacion y notificar por correo los cambios necesarios
-#vista para que el alumno pueda volver a subir sus docs
-#añadir un campo en BD para que solo los documentos que autorice a cambio los pueda editar el alumno
+@staff_member_required
+def notificar_cambios(request):
+    lista = Alumno.objects.all()
+    if request.POST["id_documento"]:
+        documento_id = request.POST["id_documento"]
+        observaciones = request.POST["observaciones"]
+        alumno_id = request.POST["id_alumno"]
+        informacionAlumno = Alumno.objects.filter(id=alumno_id)
+        #Día actual
+        hoy = date.today()
+        Estatus_doc.objects.filter(id=documento_id).update(estatus="Cambio solicitado", observaciones=observaciones, fecha=hoy) #Cambia el estado del doc a aprobado
+        #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        #Envio de correo
+        datos_doc = Estatus_doc.objects.filter(id=documento_id)
+        nombre_completo = [a.nombre for a in informacionAlumno][0]+ " " + [a.apellido_paterno for a in informacionAlumno][0]+ " " + [a.apellido_materno for a in informacionAlumno][0]
+        nombre_usuario = [a.username for a in informacionAlumno][0]
+        correo_electronico = [a.correo_electronico for a in informacionAlumno][0]
+        print(correo_electronico)
+        asunto = "Cambio en documentos - Universidad IVES"
+        txt = "Hola "+nombre_completo+" por medio de la presente te informamos que se necesita un cambio en uno de tus documentos solicitados en tu registro en Universidad IVES, la razon es: "+ observaciones
+        mensaje = """\
+        <html>
+        <head></head>
+        <body>
+            <p>Hola """+nombre_completo+"""<br>
+            por medio de la presente te informamos que se necesita un cambio en uno de tus documentos
+            solicitados en tu registro en Universidad IVES, <br>
+            - """+[a.nombre_doc for a in datos_doc][0]+""": """+ observaciones +"""</p>
+        </body>
+        </html>
+        """
+        enviarCorreo(correo_electronico, asunto, mensaje, txt)
+        #se vuelven a buscar los documentos para verlos actualizados
+        documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
+        documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
+        return render(request, "revision_documentos.html", {"documentos":documentos, "documentos_alumno":documentos_alumno,"lista_alumnos": lista})
+
+#:::::::::::::::::::::REVISION DOCUMENTOS (Alumnos):::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+@login_required
+def buscar_documentos(request):
+    usuario = request.user
+    alumno_id = usuario.id
+    documentos = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
+    documentos_estatus = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
+    fotografia={}
+    certificado={}
+    comprobante={}
+    for doc_est in documentos_estatus:
+        if doc_est.nombre_doc == "Fotografia":
+            if doc_est.estatus == "Cambio solicitado":
+                fotografia={"observaciones_foto":doc_est.observaciones, "cambiar_foto": True}
+            else: 
+                fotografia={"observaciones_foto":doc_est.observaciones, "cambiar_foto": False}
+        elif doc_est.nombre_doc == "Certificado":
+            if doc_est.estatus == "Cambio solicitado":
+                certificado={"observaciones_cert":doc_est.observaciones, "cambiar_cert": True}
+            else:
+                certificado={"observaciones_cert":doc_est.observaciones, "cambiar_cert": False}
+
+        elif doc_est.nombre_doc == "Comprobante":
+            if doc_est.estatus == "Cambio solicitado":
+                comprobante={"observaciones_comp":doc_est.observaciones, "cambiar_comp": True}
+            else:
+                comprobante={"observaciones_comp":doc_est.observaciones, "cambiar_comp": False}
+
+    print(fotografia)
+    print(certificado)
+    print(comprobante)
+    return render(request, "documentos.html", {"documentos": documentos, "fotografia":fotografia, "certificado":certificado, "comprobante":comprobante})
+
+@staff_member_required
+def buscarDoc(request):
+    lista = Alumno.objects.all()
+    return render(request, "revision_documentos.html", {"lista_alumnos": lista})
+
+@staff_member_required
+def listar_documentos(request):
+    lista = Alumno.objects.all()
+    if request.POST["id_del_alumno"]:
+        alumno_id = request.POST["id_del_alumno"]
+        documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
+        documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
+        return render(request, "revision_documentos.html", {"documentos":documentos, "documentos_alumno":documentos_alumno,"lista_alumnos": lista})
+
+
+#no se muestran las observaciones en ver documentos, pero las variables se llenan correctamente
+#falta agregar el registro de los estatus de los documentos cuando el alumno se inscriba
+#no agrega la referencia de pago
+#tampoco guarda las fotos, revisar que esté descomentado
+#revisar que el sistema cuando use el id_alumno del user busque el del alumno con base al username registrado en ambos.
+#OK falta terminar cuando el doc sea aprovado
+#OK vista para actualizar la observacion y notificar por correo los cambios necesarios
+#vista para que el alumno pueda volver a subir sus docs, usar el campo del estatus: cuando el estado sea "Necesita cambio"
+    #le debe aparecer al alumno la opcion de cambiar ese documento, pero solo al documento con ese estado.

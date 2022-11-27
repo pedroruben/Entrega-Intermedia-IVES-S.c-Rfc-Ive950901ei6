@@ -61,7 +61,7 @@
                         <td style="border-collapse: collapse; border: black 1px solid;">{{ i.estatus }}</td>
                         <td style="border-collapse: collapse; border: black 1px solid;">
                             {% if i.cambiar_estado %}
-                                <form action="{% url 'GuardarActDoc' %}" method="POST">{% csrf_token %}
+                                <form action="{% url 'NotificarCambio' %}" method="POST">{% csrf_token %}
                                     <input type="text" name="observaciones" placeholder="Escriba las observaciones que encontró en este documento">
                                     <input type="hidden" name="id_documento" value="{{i.id}}"/>
                                     <input type="hidden" name="id_alumno" value="{{i.alumno_id_id}}"/>

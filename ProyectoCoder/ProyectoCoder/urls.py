@@ -18,7 +18,7 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.views import LogoutView
-from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar, loginView, register, codigo_barras, buscar_referencia, buscarRef, listar_ref_por_alumno, actRef, guardarActRef, buscarDoc, listar_documentos, actDoc, guardarActDoc
+from AppCoder.views import AgregarAlumno, Inicio, AgregarConcepto, AgregarCuenta, buscar_cuentas, buscar, loginView, register, codigo_barras, buscar_referencia, buscarRef, listar_ref_por_alumno, actRef, guardarActRef, buscarDoc, listar_documentos, actDoc, guardarActDoc, notificar_cambios, buscar_documentos
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,6 +38,10 @@ urlpatterns = [
     path('listar_documentos/', listar_documentos, name="ListarDocs"),
     path('actualizar_documento/', actDoc, name="ActDoc"),
     path('guardar_documento/', guardarActDoc, name="GuardarActDoc"),
+    path('notificar_cambios/', notificar_cambios, name="NotificarCambio"),
+    #:::::DOCUMENTOS (alumnos)::::::::::::::::::::::::::::::::::::::::::::::::::::
+    path('buscar_documentos/', buscar_documentos, name="Buscar_documentos"),
+
     #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     path('', Inicio, name="Inicio"),
     path('login/', loginView, name="Login"),

@@ -1,0 +1,69 @@
+<title>Revision de documentos</title>
+    
+{% extends 'base_formularios.html' %}
+
+    {% load static %}
+    
+    {% block contenidoFormulario %}
+
+    {% if documentos %}
+    <br>
+    <table class="table table-bordered">
+        <thead class="bg-primary"  style="color: white;">
+            <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">FOTOGRAFIA</th>
+            <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">CERTIFICADO DE ESTUDIOS</th>
+            <th style="border-collapse: collapse; border: black 1px solid; text-align: center;">COMPROBANTE DOMICILIO</th>
+        </thead>
+        <tbody>
+            {%for j in documentos %}
+                <tr style="border-collapse: collapse; border: black 2px solid;">
+                    <td style="border-collapse: collapse; border: black 1px solid;"><a href="../../media/{{ j.fotografia }}"><img width="100px" height="100px" src="../../media/{{ j.fotografia }}" alt=""></a></td>
+                    <td style="border-collapse: collapse; border: black 1px solid;"><a href="../../media/{{ j.certificado }}"><img width="100px" height="100px" src="../../media/{{ j.certificado }}" alt=""></a></td>
+                    <td style="border-collapse: collapse; border: black 1px solid;"><a href="../../media/{{ j.comprobante }}"><img width="100px" height="100px" src="../../media/{{ j.comprobante }}" alt=""></a></td>
+                </tr>
+            {% endfor %}
+            <tr style="border-collapse: collapse; border: black 2px solid;">
+                <td style="border-collapse: collapse; border: black 1px solid;"> 
+                    {% for foto in fotografia %} 
+                        {{ foto.observaciones_foto}}
+                        {% if foto.cambiar_foto%}
+                            <form action="{% url 'NotificarCambio' %}" method="POST">{% csrf_token %}
+                                <input type="text" name="observaciones" placeholder="Escriba las observaciones que encontró en este documento">
+                                <input type="hidden" name="id_documento" value="{{i.id}}"/>
+                                <input type="hidden" name="id_alumno" value="{{i.alumno_id_id}}"/>
+                                <input type="submit" value="Notificar observaciones"  class="btn btn-primary"/>
+                            </form>
+                        {% endif %}
+                    {%endfor%} 
+                </td>
+                <td style="border-collapse: collapse; border: black 1px solid;"> 
+                    {% for cert in certificado %} 
+                        {{ cert.observaciones_cert }}
+                        {% if cert.cambiar_cert %}
+                            <form action="{% url 'NotificarCambio' %}" method="POST">{% csrf_token %}
+                                <input type="text" name="observaciones" placeholder="Escriba las observaciones que encontró en este documento">
+                                <input type="hidden" name="id_documento" value="{{i.id}}"/>
+                                <input type="hidden" name="id_alumno" value="{{i.alumno_id_id}}"/>
+                                <input type="submit" value="Notificar observaciones"  class="btn btn-primary"/>
+                            </form>
+                        {% endif %}
+                    {%endfor%} 
+                </td>
+                <td style="border-collapse: collapse; border: black 1px solid;"> 
+                    {% for comp in comprobante %} 
+                        {{ cert.observaciones_comp }}
+                        {% if comp.cambiar_comp %}
+                            <form action="{% url 'NotificarCambio' %}" method="POST">{% csrf_token %}
+                                <input type="text" name="observaciones" placeholder="Escriba las observaciones que encontró en este documento">
+                                <input type="hidden" name="id_documento" value="{{i.id}}"/>
+                                <input type="hidden" name="id_alumno" value="{{i.alumno_id_id}}"/>
+                                <input type="submit" value="Notificar observaciones"  class="btn btn-primary"/>
+                            </form>
+                        {% endif %}
+                    {%endfor%} 
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    {% endif %}
+{% endblock contenidoFormulario %}

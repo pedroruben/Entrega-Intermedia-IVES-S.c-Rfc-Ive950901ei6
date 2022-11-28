@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import login, logout, authenticate
+from django.core.files.storage import FileSystemStorage
 from datetime import datetime, timedelta, date
 
 from .forms import AlumnoFormulario, Concepto_pagosFormulario, CuentasXcobrarFormulario
@@ -156,20 +157,21 @@ def AgregarAlumno(request):
 
         if formulario_alumnos.is_valid():
             informacionAlumno = formulario_alumnos.cleaned_data
-            alumno = Alumno(nombre=informacionAlumno["nombre"], apellido_paterno=informacionAlumno["apellido_paterno"],
-                            apellido_materno=informacionAlumno["apellido_materno"], correo_electronico=informacionAlumno["correo_electronico"], 
-                            plan_id=informacionAlumno["plan_id"], fotografia=informacionAlumno["fotografia"], certificado=informacionAlumno["certificado"], 
-                            comprobante=informacionAlumno["comprobante"])
-            # alumno.save()
             nombre_c = informacionAlumno["nombre"]
             apellido_paterno_C = informacionAlumno["apellido_paterno"]
             apellido_materno_c = informacionAlumno["apellido_materno"]
             #Día actual
             today = datetime.today()
             nombre_usuario = nombre_c[0:2] + apellido_paterno_C[0:2] + apellido_materno_c[0:2] + str(today.month) + str(today.day) + str(today.hour) + str(today.minute)
-            # usuario = User(username=nombre_usuario, first_name=informacionAlumno["nombre"], last_name=informacionAlumno["apellido_paterno"]+" "+informacionAlumno["apellido_materno"])
-            # usuario.set_password(nombre_usuario) #para colocar la contraseña hasheada en la BD
-            # usuario.save()
+           
+            alumno = Alumno(nombre=informacionAlumno["nombre"], apellido_paterno=informacionAlumno["apellido_paterno"],
+                apellido_materno=informacionAlumno["apellido_materno"], correo_electronico=informacionAlumno["correo_electronico"], 
+                plan_id=informacionAlumno["plan_id"], fotografia=informacionAlumno["fotografia"], certificado=informacionAlumno["certificado"], 
+                comprobante=informacionAlumno["comprobante"], username=nombre_usuario)
+            alumno.save()
+            usuario = User(username=nombre_usuario, first_name=informacionAlumno["nombre"], last_name=informacionAlumno["apellido_paterno"]+" "+informacionAlumno["apellido_materno"])
+            usuario.set_password(nombre_usuario) #para colocar la contraseña hasheada en la BD
+            usuario.save()
             #:::::::::::::::::::::::::::::::::::::::::
             #fecha de vigencia
             td = timedelta(7)
@@ -237,12 +239,22 @@ def AgregarAlumno(request):
             alumno_obj = Alumno.objects.filter(nombre=informacionAlumno["nombre"], apellido_paterno=apellido_paterno_C, apellido_materno=apellido_materno_c)#.values()
             id_alumno = [a.id for a in alumno_obj][0]
             registro_ref = Referencias_pagos(alumno_id_id=int(id_alumno), concepto_id=[c.id for c in concepto_pagos], fecha_vencimiento=datetime.strptime(vigencia, "%d de %b del %Y"), total_pagar=total, referencia=referencia)
-            # registro_ref.save()
+            registro_ref.save()
             #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
             #CODIGO DE BARRAS
             barcode_format = barcode.get_barcode_class('GS1_128')
             my_barcode = barcode_format(referencia, writer=ImageWriter())
             my_barcode.save("media/generated_barcode", {"font_size": 8, "module_height": 5, "text_distance": 3})
+            #:::::::::::::::::::::::::::::::::::::::::
+            #DOCUMENTOS
+            #Día actual
+            hoy = date.today()
+            registrar_doc = Estatus_doc(nombre_doc="Fotografia", estatus="No aprobado", fecha=hoy, observaciones="Documento subido a plataforma", alumno_id_id=id_alumno)
+            registrar_doc.save()
+            registrar_doc = Estatus_doc(nombre_doc="Certificado", estatus="No aprobado", fecha=hoy, observaciones="Documento subido a plataforma", alumno_id_id=id_alumno)
+            registrar_doc.save()
+            registrar_doc = Estatus_doc(nombre_doc="Comprobante", estatus="No aprobado", fecha=hoy, observaciones="Documento subido a plataforma", alumno_id_id=id_alumno)
+            registrar_doc.save()
             #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
             #Envio de correo
             correo_electronico = informacionAlumno["correo_electronico"]
@@ -636,6 +648,7 @@ def actDoc(request):
         documento_id = request.POST["id_documento"]
         alumno_id = request.POST["id_alumno"]
         documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
+        documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
         #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         datos_documento = {}
         for documento in documentos:
@@ -653,7 +666,7 @@ def actDoc(request):
         apellido_paterno = [a.apellido_paterno for a in alumno_query][0]
         apellido_materno = [a.apellido_materno for a in alumno_query][0]
         lista = Alumno.objects.all()
-        return render(request, "revision_documentos.html", {"documentos": documentos_lista, "lista_alumnos": lista})
+        return render(request, "revision_documentos.html", {"documentos": documentos_lista, "documentos_alumno":documentos_alumno, "lista_alumnos": lista})
 
 @staff_member_required
 def guardarActDoc(request): #<---Para aprobar los documentos
@@ -711,55 +724,40 @@ def notificar_cambios(request):
 def buscar_documentos(request):
     usuario = request.user
     alumno_id = usuario.id
-    documentos = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
-    documentos_estatus = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
-    fotografia={}
-    certificado={}
-    comprobante={}
-    for doc_est in documentos_estatus:
-        if doc_est.nombre_doc == "Fotografia":
-            if doc_est.estatus == "Cambio solicitado":
-                fotografia={"observaciones_foto":doc_est.observaciones, "cambiar_foto": True}
-            else: 
-                fotografia={"observaciones_foto":doc_est.observaciones, "cambiar_foto": False}
-        elif doc_est.nombre_doc == "Certificado":
-            if doc_est.estatus == "Cambio solicitado":
-                certificado={"observaciones_cert":doc_est.observaciones, "cambiar_cert": True}
-            else:
-                certificado={"observaciones_cert":doc_est.observaciones, "cambiar_cert": False}
+    #aqui deberia sacar el username del usuario y buscar el id del alumno usandolo como referencia
+    documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
+    documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
+    return render(request, "documentos.html", {"documentos":documentos, "documentos_alumno":documentos_alumno})
 
-        elif doc_est.nombre_doc == "Comprobante":
-            if doc_est.estatus == "Cambio solicitado":
-                comprobante={"observaciones_comp":doc_est.observaciones, "cambiar_comp": True}
-            else:
-                comprobante={"observaciones_comp":doc_est.observaciones, "cambiar_comp": False}
-
-    print(fotografia)
-    print(certificado)
-    print(comprobante)
-    return render(request, "documentos.html", {"documentos": documentos, "fotografia":fotografia, "certificado":certificado, "comprobante":comprobante})
-
-@staff_member_required
-def buscarDoc(request):
-    lista = Alumno.objects.all()
-    return render(request, "revision_documentos.html", {"lista_alumnos": lista})
-
-@staff_member_required
-def listar_documentos(request):
-    lista = Alumno.objects.all()
-    if request.POST["id_del_alumno"]:
-        alumno_id = request.POST["id_del_alumno"]
-        documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
-        documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
-        return render(request, "revision_documentos.html", {"documentos":documentos, "documentos_alumno":documentos_alumno,"lista_alumnos": lista})
+@login_required
+def cambiar_documento(request):
+    usuario = request.user
+    alumno_id = usuario.id
+    columna = request.POST["columna"]
+    documento_nuevo = request.FILES["documento_nuevo"]
+    fs = FileSystemStorage()
+    if columna == "Fotografia":
+        filename = fs.save("fotografias/"+usuario.first_name+" "+usuario.last_name+" "+str(usuario.id)+".jpg", documento_nuevo)
+        Alumno.objects.filter(id=alumno_id).update(fotografia=filename)
+    elif columna == "Certificado":
+        filename = fs.save("certificados/"+usuario.first_name+" "+usuario.last_name+" "+str(usuario.id)+".jpg", documento_nuevo)
+        Alumno.objects.filter(id=alumno_id).update(certificado=filename)
+    elif columna == "Comprobante":
+        filename = fs.save("comprobantes/"+usuario.first_name+" "+usuario.last_name+" "+str(usuario.id)+".jpg", documento_nuevo)
+        Alumno.objects.filter(id=alumno_id).update(comprobante=filename)
+    #aqui deberia sacar el username del usuario y buscar el id del alumno usandolo como referencia
+    documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
+    documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
+    return render(request, "documentos.html", {"documentos":documentos, "documentos_alumno":documentos_alumno})
 
 
-#no se muestran las observaciones en ver documentos, pero las variables se llenan correctamente
-#falta agregar el registro de los estatus de los documentos cuando el alumno se inscriba
-#no agrega la referencia de pago
-#tampoco guarda las fotos, revisar que esté descomentado
 #revisar que el sistema cuando use el id_alumno del user busque el del alumno con base al username registrado en ambos.
+#OK poner el nombre de usuario en los documentos que se van a subir pero checar como seria en el registro
+#OK falta agregar el registro de los estatus de los documentos cuando el alumno se inscriba
+#OK no agrega la referencia de pago (está comentado)
+#OK tampoco guarda las fotos, revisar que esté descomentado
+#OK no se muestran las observaciones en ver documentos, pero las variables se llenan correctamente
 #OK falta terminar cuando el doc sea aprovado
 #OK vista para actualizar la observacion y notificar por correo los cambios necesarios
-#vista para que el alumno pueda volver a subir sus docs, usar el campo del estatus: cuando el estado sea "Necesita cambio"
-    #le debe aparecer al alumno la opcion de cambiar ese documento, pero solo al documento con ese estado.
+#OK vista para que el alumno pueda volver a subir sus docs, usar el campo del estatus: cuando el estado sea "Necesita cambio"
+#OK le debe aparecer al alumno la opcion de cambiar ese documento, pero solo al documento con ese estado.

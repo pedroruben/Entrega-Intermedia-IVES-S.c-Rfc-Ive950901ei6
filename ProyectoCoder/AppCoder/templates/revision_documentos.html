@@ -74,8 +74,8 @@
                         <td style="border-collapse: collapse; border: black 1px solid;">
                                 {% if i.cambiar_estado %}
                                     <form action="{% url 'GuardarActDoc' %}" method="POST">{% csrf_token %}
-                                        <input type="hidden" name="id_referencia" value="{{i.id_referencia}}"/>
-                                        <input type="hidden" name="id_alumno" value="{{i.alumno_id}}"/>
+                                        <input type="hidden" name="id_documento" value="{{i.id}}"/>
+                                        <input type="hidden" name="id_alumno" value="{{i.alumno_id_id}}"/>
                                         <input type="submit" value="Cambiar a APROBADO"  class="btn btn-primary"/>
                                     </form>
                                 {% else %}

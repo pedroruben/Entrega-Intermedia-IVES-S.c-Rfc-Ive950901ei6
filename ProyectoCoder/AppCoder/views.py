@@ -32,7 +32,9 @@ def Inicio(request):
 @login_required
 def buscar_cuentas(request):
     usuario = request.user
-    alumno_id = usuario.id
+    username = usuario.username
+    alumno_query = Alumno.objects.filter(username=username)
+    alumno_id = [a.id for a in alumno_query][0]
     referencias_lista = []
     referencias = Referencias_pagos.objects.filter(alumno_id_id=alumno_id)
     #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -723,7 +725,9 @@ def notificar_cambios(request):
 @login_required
 def buscar_documentos(request):
     usuario = request.user
-    alumno_id = usuario.id
+    username = usuario.username
+    alumno_query = Alumno.objects.filter(username=username)
+    alumno_id = [a.id for a in alumno_query][0]
     #aqui deberia sacar el username del usuario y buscar el id del alumno usandolo como referencia
     documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
     documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
@@ -732,7 +736,9 @@ def buscar_documentos(request):
 @login_required
 def cambiar_documento(request):
     usuario = request.user
-    alumno_id = usuario.id
+    username = usuario.username
+    alumno_query = Alumno.objects.filter(username=username)
+    alumno_id = [a.id for a in alumno_query][0]
     columna = request.POST["columna"]
     documento_nuevo = request.FILES["documento_nuevo"]
     fs = FileSystemStorage()
@@ -749,15 +755,3 @@ def cambiar_documento(request):
     documentos = Estatus_doc.objects.filter(alumno_id_id=alumno_id)
     documentos_alumno = Alumno.objects.filter(id=alumno_id).values('fotografia','certificado','comprobante')
     return render(request, "documentos.html", {"documentos":documentos, "documentos_alumno":documentos_alumno})
-
-
-#revisar que el sistema cuando use el id_alumno del user busque el del alumno con base al username registrado en ambos.
-#OK poner el nombre de usuario en los documentos que se van a subir pero checar como seria en el registro
-#OK falta agregar el registro de los estatus de los documentos cuando el alumno se inscriba
-#OK no agrega la referencia de pago (está comentado)
-#OK tampoco guarda las fotos, revisar que esté descomentado
-#OK no se muestran las observaciones en ver documentos, pero las variables se llenan correctamente
-#OK falta terminar cuando el doc sea aprovado
-#OK vista para actualizar la observacion y notificar por correo los cambios necesarios
-#OK vista para que el alumno pueda volver a subir sus docs, usar el campo del estatus: cuando el estado sea "Necesita cambio"
-#OK le debe aparecer al alumno la opcion de cambiar ese documento, pero solo al documento con ese estado.

@@ -9,7 +9,7 @@
     {% if user.is_staff %}
         <div class="opciones">
             <form action="{% url 'ListarDocs' %}" method="POST">{% csrf_token %}
-                <label>Seleccione el alumno, para buscar sus estado de cuenta</label>
+                <label>Seleccione el alumno, para buscar sus documentos</label>
                 <select name="id_del_alumno" class="form-control">
                     <option>Seleccione un alumno</option>
                     {%for lista in lista_alumnos %}
